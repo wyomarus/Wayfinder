@@ -23,8 +23,6 @@ globals = {
     "Settings",
     "CreateSettingsListSectionHeaderInitializer",
     "CreateSettingsButtonInitializer",
-    "Minimap",
-    "GetCursorPosition",
     "GameTooltip",
     "GameTooltip_Hide",
     "IsInInstance",
@@ -39,8 +37,15 @@ globals = {
     "C_TaxiMap",
     "C_Navigation",
     "C_DeathInfo",
+    "C_AddOns",
     "AbbreviateNumbers",
     "IN_GAME_NAVIGATION_RANGE",
+
+    -- Addon Compartment entry points - dispatched to by name from Wayfinder.toc, must be
+    -- plain globals
+    "Wayfinder_OnAddonCompartmentClick",
+    "Wayfinder_OnAddonCompartmentEnter",
+    "Wayfinder_OnAddonCompartmentLeave",
 
     -- Libs
     "LibStub"

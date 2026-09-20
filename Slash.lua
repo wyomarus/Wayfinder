@@ -32,6 +32,10 @@ local function ResetCompassBannerPosition()
     print("Compass banner position reset to default.")
 end
 
+local function OpenSettings()
+    api.Settings.Open()
+end
+
 local function EnableCardinalPoints()
     api.CardinalPoints:Show()
     print("CardinalPoints enabled.")
@@ -99,6 +103,7 @@ local function PrintUsage()
     print("/wayfinder lock - Lock the compass banner in place")
     print("/wayfinder unlock - Unlock the compass banner so it can be dragged")
     print("/wayfinder resetposition - Reset the compass banner to its default position")
+    print("/wayfinder settings - Open the Wayfinder settings panel")
     print("/wayfinder compass enable|disable - Enable or disable the CardinalPoints")
     print("/wayfinder detail <0-3> - Set how much compass detail is shown")
     print("/wayfinder tracking enable|disable - Enable or disable SuperTracking")
@@ -113,6 +118,7 @@ local commandHandlers = {
     lock = LockCompassBanner,
     unlock = UnlockCompassBanner,
     resetposition = ResetCompassBannerPosition,
+    settings = OpenSettings,
     compass = {
         enable = EnableCardinalPoints,
         disable = DisableCardinalPoints,

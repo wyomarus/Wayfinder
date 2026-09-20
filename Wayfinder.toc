@@ -5,6 +5,10 @@
 ## Notes: A simple addon to help you find your way around the world of Azeroth.
 ## X-Curse-Project-ID: 1110568
 ## X-Wago-ID: Q6aEQ76W
+## IconTexture: Interface\AddOns\Wayfinder\Media\Icon.jpg
+## AddonCompartmentFunc: Wayfinder_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: Wayfinder_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: Wayfinder_OnAddonCompartmentLeave
 ## SavedVariables: WayfinderDebug, WayfinderSettings
 ## LoadSavedVariablesFirst: 1
 # LoadSavedVariablesFirst is correct but doesn't fully help yet - known Forever beta bug,
@@ -17,6 +21,6 @@ CompassBanner.lua
 CardinalPoints.lua
 SuperTracking.lua
 Settings.lua
-MinimapButton.lua
+AddonCompartment.lua
 Events.lua
 Slash.lua
