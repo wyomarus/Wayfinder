@@ -16,18 +16,18 @@ jobs:
     permissions: write-all
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Install and run Luacheck
-        uses: nebularg/actions-luacheck@v1
+        uses: BigWigsMods/luacheck@main
         with:
           args: "--no-color -q"
 
       - name: Create Package
         uses: BigWigsMods/packager@master
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
