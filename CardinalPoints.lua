@@ -38,7 +38,7 @@ local function setEnabled(enabled)
     end
 end
 
-addon.CardinalPoints = {
+api.CardinalPoints = {
     Show = function() setEnabled(true) end,
     Hide = function() setEnabled(false) end,
 }
