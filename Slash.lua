@@ -17,22 +17,22 @@ local function HideCompassBanner()
 end
 
 local function EnableCardinalPoints()
-    addon.CardinalPoints:Show()
+    api.CardinalPoints:Show()
     print("CardinalPoints enabled.")
 end
 
 local function DisableCardinalPoints()
-    addon.CardinalPoints:Hide()
+    api.CardinalPoints:Hide()
     print("CardinalPoints disabled.")
 end
 
 local function EnableSuperTracking()
-    addon.SuperTracking:Enable()
+    api.SuperTracking:Enable()
     print("SuperTracking enabled.")
 end
 
 local function DisableSuperTracking()
-    addon.SuperTracking:Disable()
+    api.SuperTracking:Disable()
     print("SuperTracking disabled.")
 end
 
@@ -83,7 +83,7 @@ local function HandleSlashCommands(msg)
     end
 end
 
-local SlashCmdList = _G["SlashCmdList"]
+local SlashCmdList = SlashCmdList
 SlashCmdList["WAYFINDER"] = HandleSlashCommands
 _G.SLASH_WAYFINDER1 = "/wayfinder"
 _G.SLASH_WAYFINDER2 = "/wf"

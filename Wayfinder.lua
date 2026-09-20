@@ -46,10 +46,10 @@ end
 _p.bind = bind
 
 -- Print a table to the default chat frame
-local function printTable(table)
-    assert(type(table) == "table", "Expected table to be a table")
+local function printTable(tbl)
+    assert(type(tbl) == "table", "Expected tbl to be a table")
 
-    for key, value in pairs(table) do
+    for key, value in pairs(tbl) do
         print(format("%s:", key), value)
     end
 end
