@@ -9,3 +9,8 @@
 Libs\embeds.xml
 
 Wayfinder.lua
+CompassBanner.lua
+CardinalPoints.lua
+SuperTracking.lua
+Events.lua
+Slash.lua
