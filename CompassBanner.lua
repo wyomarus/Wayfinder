@@ -74,16 +74,29 @@ local function buildCompassBannerFrame()
     frame:SetSize(BANNER_WIDTH, BANNER_HEIGHT)
     frame:SetPoint("TOP", 0, -10)
 
-    -- Create a texture for the vertical line
+    -- Create a texture for the vertical line marking straight ahead
     local line = frame:CreateTexture(nil, "OVERLAY")
     line:SetColorTexture(1, 1, 1, 1)               -- White color, fully opaque
     line:SetSize(2, frame:GetHeight())             -- Width of 2 pixels, height same as the frame
     line:SetPoint("CENTER", frame, "CENTER", 0, 0) -- Centered vertically in the frame
+    frame.centerLine = line
 
     return frame
 end
 
 addon.CompassBannerFrame = addon.CompassBannerFrame or buildCompassBannerFrame()
+
+--- Show or hide the center "straight ahead" line independently of the banner itself.
+--- @param shown boolean
+local function setCenterLineShown(shown)
+    if shown then
+        addon.CompassBannerFrame.centerLine:Show()
+    else
+        addon.CompassBannerFrame.centerLine:Hide()
+    end
+end
+
+api.SetCenterLineShown = setCenterLineShown
 
 local function asDegrees(radians)
     local degrees = deg(radians)

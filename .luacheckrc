@@ -10,6 +10,7 @@ ignore = {
 globals = {
 	-- Saved Variables
 	"WayfinderDebug",
+	"WayfinderSettings",
 
 	-- WIM
 	"WIM",

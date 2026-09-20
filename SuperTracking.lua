@@ -48,6 +48,7 @@ local GetWorldCoordinatesFromZone = bind(hbd, hbd.GetWorldCoordinatesFromZone)
 -- forward declarations
 local trackingFunctions
 local updateSuperTrackingIcon
+local setSuperTrackingDistanceText
 
 --- Resolve the world-map coordinates of whatever is currently super-tracked.
 --- Tries C_Navigation.GetNextWaypointForMap first, since that's the unified API
@@ -74,18 +75,32 @@ end
 
 --- Callback for the SuperTracking element on the compass banner.
 local function superTrackingCallback()
-    if not IsSuperTrackingAnything() then return end
+    if not IsSuperTrackingAnything() then
+        setSuperTrackingDistanceText(nil)
+        return
+    end
 
     updateSuperTrackingIcon()
 
     local playerX, playerY, instanceId = GetPlayerWorldPosition()
-    if not (playerX and playerY and instanceId) then return end
+    if not (playerX and playerY and instanceId) then
+        setSuperTrackingDistanceText(nil)
+        return
+    end
 
     local destX, destY = superTrackingDestination()
-    if not (destX and destY) then return end
+    if not (destX and destY) then
+        setSuperTrackingDistanceText(nil)
+        return
+    end
 
-    local angle, _ = GetWorldVector(instanceId, playerX, playerY, destX, destY)
-    if not angle then return end
+    local angle, distance = GetWorldVector(instanceId, playerX, playerY, destX, destY)
+    if not angle then
+        setSuperTrackingDistanceText(nil)
+        return
+    end
+
+    setSuperTrackingDistanceText(distance)
 
     return 360 - deg(angle)
 end
@@ -194,7 +209,17 @@ trackingFunctions = {
 -- GetTexture/SetTexCoord.
 local SuperTrackedFrame = SuperTrackedFrame
 local superTrackingMarker = nil
+local superTrackingDistanceText = nil
 local superTrackingIconApplied = false
+
+-- Known WoW: Forever beta bug affecting SavedVariables persistence in general - see
+-- CardinalPoints.lua's compassDetail comment for details.
+WayfinderSettings = WayfinderSettings or {}
+local showTrackingDistance = WayfinderSettings.showTrackingDistance
+if showTrackingDistance == nil then
+    showTrackingDistance = true
+end
+WayfinderSettings.showTrackingDistance = showTrackingDistance
 
 --- Apply the live SuperTracking icon to our marker, retrying each update until
 --- SuperTrackedFrame is available (starting SuperTracking is what creates it).
@@ -215,7 +240,26 @@ local function createSuperTrackingMarker(frame)
     local marker = frame:CreateTexture(nil, "OVERLAY")
     marker:SetSize(25, 25)
     superTrackingMarker = marker
+
+    local distanceText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    distanceText:SetPoint("TOP", marker, "BOTTOM", 0, -2)
+    distanceText:Hide()
+    superTrackingDistanceText = distanceText
+
     return marker
+end
+
+--- Show the given distance below the marker, or hide the text if there's nothing to show
+--- or the user has turned the distance readout off.
+--- @param distance number|nil Distance to the super-tracked target, in yards.
+setSuperTrackingDistanceText = function(distance)
+    if not showTrackingDistance or not distance then
+        superTrackingDistanceText:Hide()
+        return
+    end
+
+    superTrackingDistanceText:SetText(math.floor(distance + 0.5) .. " yd")
+    superTrackingDistanceText:Show()
 end
 
 local date = date
@@ -342,5 +386,16 @@ local superTrackingElement = api.AddElementToBanner(
 
 api.SuperTracking = {
     Enable = function() api.SetElementEnabled(superTrackingElement, true) end,
-    Disable = function() api.SetElementEnabled(superTrackingElement, false) end,
+    Disable = function()
+        api.SetElementEnabled(superTrackingElement, false)
+        setSuperTrackingDistanceText(nil)
+    end,
+    SetShowDistance = function(shown)
+        showTrackingDistance = shown
+        WayfinderSettings.showTrackingDistance = shown
+        if not shown then
+            superTrackingDistanceText:Hide()
+        end
+    end,
+    GetShowDistance = function() return showTrackingDistance end,
 }
