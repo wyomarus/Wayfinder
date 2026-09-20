@@ -38,6 +38,9 @@ local GetAreaPOIInfo = AreaPoiInfo.GetAreaPOIInfo
 local TaxiMap = C_TaxiMap
 local GetTaxiNodesForMap = TaxiMap.GetTaxiNodesForMap
 
+local DeathInfo = C_DeathInfo
+local GetCorpseMapPosition = DeathInfo.GetCorpseMapPosition
+
 local hbd = LibStub("HereBeDragons-2.0")
 assert(hbd, "HereBeDragons-2.0 is required by the Wayfinder SuperTracking module")
 addon.Dependencies["HereBeDragons-2.0"] = hbd
@@ -49,6 +52,7 @@ local GetWorldCoordinatesFromZone = bind(hbd, hbd.GetWorldCoordinatesFromZone)
 -- forward declarations
 local trackingFunctions
 local updateSuperTrackingIcon
+local superTrackingElement
 local setSuperTrackingDistanceText
 
 --- Resolve the world-map coordinates of whatever is currently super-tracked.
@@ -158,7 +162,8 @@ end
 local function handleAreaPOI(map, typeId)
     local info = GetAreaPOIInfo(map, typeId)
     if not info then return end
-    return info.position:GetXY()
+    local x, y = info.position:GetXY()
+    return GetWorldCoordinatesFromZone(x, y, map)
 end
 
 local function handleTaxiNode(map, typeId)
@@ -168,6 +173,18 @@ local function handleTaxiNode(map, typeId)
             return GetWorldCoordinatesFromZone(node.position.x, node.position.y, map)
         end
     end
+end
+
+--- Get the world coordinates of the player's own corpse, if it's on their current map.
+local function superTrackingCorpse()
+    local map = GetBestMapForUnit("player")
+    if not map then return end
+
+    local position = GetCorpseMapPosition(map)
+    if not position then return end
+
+    local x, y = position:GetXY()
+    return GetWorldCoordinatesFromZone(x, y, map)
 end
 
 local mapPinTrackingFunctions = {
@@ -195,7 +212,7 @@ end
 trackingFunctions = {
     [Enum.SuperTrackingType.Quest] = superTrackingQuest,
     [Enum.SuperTrackingType.UserWaypoint] = superTrackingUserWaypoint,
-    [Enum.SuperTrackingType.Corpse] = functionNotImplemented,
+    [Enum.SuperTrackingType.Corpse] = superTrackingCorpse,
     [Enum.SuperTrackingType.Scenario] = functionNotImplemented,
     [Enum.SuperTrackingType.Content] = functionNotImplemented,
     [Enum.SuperTrackingType.PartyMember] = functionNotImplemented,
@@ -210,7 +227,7 @@ trackingFunctions = {
 local SuperTrackedFrame = SuperTrackedFrame
 local superTrackingMarker = nil
 local superTrackingDistanceText = nil
-local superTrackingIconApplied = false
+local superTrackingIconAtlas = nil
 
 -- Known WoW: Forever beta bug affecting SavedVariables persistence in general - see
 -- CardinalPoints.lua's compassDetail comment for details.
@@ -221,17 +238,22 @@ if showTrackingDistance == nil then
 end
 WayfinderSettings.showTrackingDistance = showTrackingDistance
 
---- Apply the live SuperTracking icon to our marker, retrying each update until
---- SuperTrackedFrame is available (starting SuperTracking is what creates it).
+--- Apply the live SuperTracking icon to our marker. Retries each update until
+--- SuperTrackedFrame is available (starting SuperTracking is what creates it), and
+--- re-applies whenever the atlas itself changes, since Blizzard uses a different icon
+--- per tracking type (e.g. a tombstone for a corpse vs. a waypoint flag for a quest).
 updateSuperTrackingIcon = function()
-    if superTrackingIconApplied then return end
-
     local superTrackedIcon = SuperTrackedFrame and SuperTrackedFrame.Icon
     local atlas = superTrackedIcon and superTrackedIcon:GetAtlas()
-    if not atlas then return end
+    if not atlas or atlas == superTrackingIconAtlas then return end
 
     superTrackingMarker:SetAtlas(atlas, true)
-    superTrackingIconApplied = true
+    superTrackingIconAtlas = atlas
+
+    -- A tombstone (corpse tracking) has no inherent direction, unlike the arrow/flag
+    -- icons used for everything else, so don't rotate it when pinned at the FOV edge.
+    local trackingType = GetHighestPrioritySuperTrackingType()
+    api.SetElementRotateWhenSticky(superTrackingElement, trackingType ~= Enum.SuperTrackingType.Corpse)
 end
 
 --- Create the SuperTracking marker for the compass banner
@@ -361,7 +383,7 @@ local function debugSuperTracking()
     out(" SuperTrackedFrame exists:", SuperTrackedFrame ~= nil)
     local icon = SuperTrackedFrame and SuperTrackedFrame.Icon
     out(" SuperTrackedFrame.Icon atlas:", icon and icon:GetAtlas())
-    out(" superTrackingIconApplied:", superTrackingIconApplied)
+    out(" superTrackingIconAtlas (last applied):", superTrackingIconAtlas)
 
     -- Sanity check: round-trip the player's own position through HereBeDragons'
     -- zone conversion. If this doesn't roughly match GetPlayerWorldPosition, HBD
@@ -392,7 +414,7 @@ api.DebugSuperTracking = debugSuperTracking
 
 local isSticky = true
 
-local superTrackingElement = api.AddElementToBanner(
+superTrackingElement = api.AddElementToBanner(
     "SuperTracking",
     superTrackingCallback,
     createSuperTrackingMarker,
