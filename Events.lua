@@ -10,8 +10,6 @@ end
 local IsInInstance = IsInInstance
 local function OnZoneChangedNewArea()
     local isInInstance = IsInInstance()
---    local facing = GetPlayerFacing()
---    print("OnZoneChangedNewArea: isInInstance:", isInInstance, "facing:", facing)
 
     if not isInInstance then
         _p.enableCompassBanner()

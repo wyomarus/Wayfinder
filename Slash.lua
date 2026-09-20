@@ -99,6 +99,10 @@ local commandHandlers = {
     },
 }
 
+--- Dispatch a slash command: look up the first word in commandHandlers, then either
+--- call it directly (with the rest of the message as its argument) or, if it maps to
+--- a table instead, look up the second word in that table and call it with no argument.
+--- @param msg string The text after "/wayfinder" or "/wf".
 local function HandleSlashCommands(msg)
     local command, subcommand = msg:match("^(%S*)%s*(.-)$")
     local handler = commandHandlers[command]

@@ -1,28 +1,22 @@
 std = "lua51"
 max_line_length = false
 exclude_files = {
-	"**/Libs/**/*.lua",
-	".luacheckrc"
+    "**/Libs/**/*.lua",
+    ".luacheckrc"
 }
 ignore = {
 }
 
 globals = {
-	-- Saved Variables
-	"WayfinderDebug",
-	"WayfinderSettings",
+    -- Saved Variables
+    "WayfinderDebug",
+    "WayfinderSettings",
 
-	-- WIM
-	"WIM",
-	"debug",
+    -- Lua
+    "date",
 
-	-- Lua
-	"date",
-
-	-- Utility functions
-
-	-- WoW
-	"CreateFrame",
+    -- WoW
+    "CreateFrame",
     "GetPlayerFacing",
     "IsInInstance",
     "UIParent",
@@ -31,7 +25,6 @@ globals = {
     "SuperTrackedFrame",
     "C_Map",
     "C_QuestLog",
-    "C_QuestOffer",
     "C_SuperTrack",
     "C_AreaPoiInfo",
     "C_TaxiMap",

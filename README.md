@@ -8,6 +8,7 @@ Welcome to Wayfinder, an addon for World of Warcraft that enhances your navigati
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
   - [Usage](#usage)
+  - [Commands](#commands)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -19,9 +20,27 @@ Welcome to Wayfinder, an addon for World of Warcraft that enhances your navigati
 
 ## Usage
 
-Once installed, Wayfinder will automatically display a compass banner at the top of your screen when you log into the game. The compass banner will show important waypoints and directions to help you navigate the world.
+Once installed, Wayfinder will automatically display a compass banner at the top of your screen when you log into the game. The banner shows cardinal and intercardinal directions plus a marker and distance readout for whatever you're currently super-tracking (a quest, a waypoint, etc.). It hides itself automatically while you're inside an instance.
+
+SuperTracking currently follows quests, user-placed waypoints, area POIs, and taxi nodes. Other trackable target types (corpse runs, scenarios, world content, party members, vignettes) aren't handled yet, so the marker just won't appear for those.
+
+## Commands
+
+All commands are available under `/wayfinder` or the shorter `/wf`.
+
+| Command | Effect |
+| --- | --- |
+| `/wayfinder show` | Show the compass banner |
+| `/wayfinder hide` | Hide the compass banner |
+| `/wayfinder compass enable\|disable` | Enable or disable the cardinal/intercardinal direction markers |
+| `/wayfinder detail <0-3>` | Set how much compass detail is shown (0 = none, 3 = cardinals + intercardinals + 15° ticks) |
+| `/wayfinder tracking enable\|disable` | Enable or disable the SuperTracking marker |
+| `/wayfinder distance enable\|disable` | Show or hide the SuperTracking distance readout |
+| `/wayfinder debug tracking` | Print SuperTracking diagnostic info, for troubleshooting a missing marker |
 
 ## Contributing
+
+Bug reports, feature requests, and pull requests are welcome via [GitHub Issues](https://github.com/wyomarus/Wayfinder/issues) and [Pull Requests](https://github.com/wyomarus/Wayfinder/pulls). See [DEVNOTES.md](DEVNOTES.md) for the project's coding conventions.
 
 ## License
 

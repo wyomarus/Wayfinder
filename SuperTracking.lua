@@ -6,6 +6,7 @@ local api = addon.API
 
 local bind = _p.bind
 
+-- Cache global references
 local deg = math.deg
 local print = print
 
@@ -190,7 +191,6 @@ local function superTrackingMapPin()
 
     return mapPinTrackingFunction(map, typeId)
 end
-
 
 trackingFunctions = {
     [Enum.SuperTrackingType.Quest] = superTrackingQuest,
