@@ -18,6 +18,8 @@ globals = {
     -- WoW
     "CreateFrame",
     "GetPlayerFacing",
+    "GetUnitSpeed",
+    "issecretvalue",
     "IsInInstance",
     "UIParent",
     "Enum",

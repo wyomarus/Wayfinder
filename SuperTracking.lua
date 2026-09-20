@@ -9,6 +9,8 @@ local bind = _p.bind
 -- Cache global references
 local deg = math.deg
 local print = print
+local GetUnitSpeed = GetUnitSpeed
+local issecretvalue = issecretvalue
 
 local Enum = Enum
 
@@ -53,7 +55,7 @@ local GetWorldCoordinatesFromZone = bind(hbd, hbd.GetWorldCoordinatesFromZone)
 local trackingFunctions
 local updateSuperTrackingIcon
 local superTrackingElement
-local setSuperTrackingDistanceText
+local updateSuperTrackingReadout
 
 --- Resolve the world-map coordinates of whatever is currently super-tracked.
 --- Tries C_Navigation.GetNextWaypointForMap first, since that's the unified API
@@ -81,7 +83,7 @@ end
 --- Callback for the SuperTracking element on the compass banner.
 local function superTrackingCallback()
     if not IsSuperTrackingAnything() then
-        setSuperTrackingDistanceText(nil)
+        updateSuperTrackingReadout(nil)
         return
     end
 
@@ -89,23 +91,23 @@ local function superTrackingCallback()
 
     local playerX, playerY, instanceId = GetPlayerWorldPosition()
     if not (playerX and playerY and instanceId) then
-        setSuperTrackingDistanceText(nil)
+        updateSuperTrackingReadout(nil)
         return
     end
 
     local destX, destY = superTrackingDestination()
     if not (destX and destY) then
-        setSuperTrackingDistanceText(nil)
+        updateSuperTrackingReadout(nil)
         return
     end
 
     local angle, distance = GetWorldVector(instanceId, playerX, playerY, destX, destY)
     if not angle then
-        setSuperTrackingDistanceText(nil)
+        updateSuperTrackingReadout(nil)
         return
     end
 
-    setSuperTrackingDistanceText(distance)
+    updateSuperTrackingReadout(distance, GetUnitSpeed("player"))
 
     return 360 - deg(angle)
 end
@@ -227,6 +229,7 @@ trackingFunctions = {
 local SuperTrackedFrame = SuperTrackedFrame
 local superTrackingMarker = nil
 local superTrackingDistanceText = nil
+local superTrackingETAText = nil
 local superTrackingIconAtlas = nil
 
 -- Known WoW: Forever beta bug affecting SavedVariables persistence in general - see
@@ -237,6 +240,12 @@ if showTrackingDistance == nil then
     showTrackingDistance = true
 end
 WayfinderSettings.showTrackingDistance = showTrackingDistance
+
+local showTrackingETA = WayfinderSettings.showTrackingETA
+if showTrackingETA == nil then
+    showTrackingETA = true
+end
+WayfinderSettings.showTrackingETA = showTrackingETA
 
 --- Apply the live SuperTracking icon to our marker. Retries each update until
 --- SuperTrackedFrame is available (starting SuperTracking is what creates it), and
@@ -256,6 +265,18 @@ updateSuperTrackingIcon = function()
     api.SetElementRotateWhenSticky(superTrackingElement, trackingType ~= Enum.SuperTrackingType.Corpse)
 end
 
+--- Anchor the ETA text below the distance text when distance is shown, or directly
+--- below the marker when it isn't, so disabling the distance readout doesn't leave a
+--- blank gap above an otherwise still-enabled ETA line.
+local function updateSuperTrackingETAAnchor()
+    superTrackingETAText:ClearAllPoints()
+    if showTrackingDistance then
+        superTrackingETAText:SetPoint("TOP", superTrackingDistanceText, "BOTTOM", 0, -2)
+    else
+        superTrackingETAText:SetPoint("TOP", superTrackingMarker, "BOTTOM", 0, -2)
+    end
+end
+
 --- Create the SuperTracking marker for the compass banner
 local function createSuperTrackingMarker(frame)
     if superTrackingMarker then return superTrackingMarker end
@@ -267,6 +288,11 @@ local function createSuperTrackingMarker(frame)
     distanceText:SetPoint("TOP", marker, "BOTTOM", 0, -2)
     distanceText:Hide()
     superTrackingDistanceText = distanceText
+
+    local etaText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    etaText:Hide()
+    superTrackingETAText = etaText
+    updateSuperTrackingETAAnchor()
 
     return marker
 end
@@ -284,19 +310,50 @@ local function formatDistance(distance)
     end
 end
 
---- Show the given distance below the marker, or hide the text if there's nothing to show
---- or the user has turned the distance readout off. Uses Blizzard's own localized
---- IN_GAME_NAVIGATION_RANGE string (the same one SuperTrackedFrame uses) rather than a
---- hardcoded unit suffix, since the distance unit label isn't the same in every locale.
+--- Format a countdown of seconds as e.g. "45s" or "2m 10s".
+--- @param seconds number
+--- @return string
+local function formatETA(seconds)
+    seconds = math.floor(seconds + 0.5)
+    if seconds < 60 then
+        return seconds .. "s"
+    end
+    return math.floor(seconds / 60) .. "m " .. (seconds % 60) .. "s"
+end
+
+--- Show the distance and/or ETA to the super-tracked target below the marker (ETA below
+--- distance), or hide each independently when there's nothing to show or its readout is
+--- turned off. Distance uses Blizzard's own localized IN_GAME_NAVIGATION_RANGE string
+--- (the same one SuperTrackedFrame uses) rather than a hardcoded unit suffix, since the
+--- label isn't the same in every locale. ETA is a straight-line estimate from the
+--- player's current raw movement speed (GetUnitSpeed), so it assumes travel directly
+--- toward the target at a constant speed - it'll be jumpy while turning/stopping and
+--- wrong while moving away from the target. GetUnitSpeed can also return a "secret"
+--- value while in combat (WoW 12.0+'s addon disarmament system) - arithmetic or
+--- comparison on a secret value throws, so it's treated the same as no usable speed.
+--- Whenever ETA is enabled and there's a target, the line always shows something ("--"
+--- when there's no usable speed) rather than appearing/disappearing, so toggling the
+--- setting or standing still both read clearly instead of looking like nothing happened.
 --- @param distance number|nil Distance to the super-tracked target, in yards.
-setSuperTrackingDistanceText = function(distance)
-    if not showTrackingDistance or not distance then
+--- @param speed number|nil The player's current movement speed, in yards per second.
+updateSuperTrackingReadout = function(distance, speed)
+    if distance and showTrackingDistance then
+        superTrackingDistanceText:SetText(IN_GAME_NAVIGATION_RANGE:format(formatDistance(distance)))
+        superTrackingDistanceText:Show()
+    else
         superTrackingDistanceText:Hide()
-        return
     end
 
-    superTrackingDistanceText:SetText(IN_GAME_NAVIGATION_RANGE:format(formatDistance(distance)))
-    superTrackingDistanceText:Show()
+    if distance and showTrackingETA then
+        if speed and not issecretvalue(speed) and speed > 0.01 then
+            superTrackingETAText:SetText(formatETA(distance / speed))
+        else
+            superTrackingETAText:SetText("--")
+        end
+        superTrackingETAText:Show()
+    else
+        superTrackingETAText:Hide()
+    end
 end
 
 local date = date
@@ -330,6 +387,11 @@ local function debugSuperTracking()
 
     local playerX, playerY, instanceId = GetPlayerWorldPosition()
     out(" GetPlayerWorldPosition:", playerX, playerY, instanceId)
+
+    -- tostring() on a secret value throws just like arithmetic does, so it has to be
+    -- checked before printing rather than passed straight to out()/print().
+    local speed = GetUnitSpeed("player")
+    out(" GetUnitSpeed(player):", issecretvalue(speed) and "<secret>" or speed)
 
     local map = GetBestMapForUnit("player")
     out(" GetBestMapForUnit:", map)
@@ -425,14 +487,17 @@ api.SuperTracking = {
     Enable = function() api.SetElementEnabled(superTrackingElement, true) end,
     Disable = function()
         api.SetElementEnabled(superTrackingElement, false)
-        setSuperTrackingDistanceText(nil)
+        updateSuperTrackingReadout(nil)
     end,
     SetShowDistance = function(shown)
         showTrackingDistance = shown
         WayfinderSettings.showTrackingDistance = shown
-        if not shown then
-            superTrackingDistanceText:Hide()
-        end
+        updateSuperTrackingETAAnchor()
     end,
     GetShowDistance = function() return showTrackingDistance end,
+    SetShowETA = function(shown)
+        showTrackingETA = shown
+        WayfinderSettings.showTrackingETA = shown
+    end,
+    GetShowETA = function() return showTrackingETA end,
 }
