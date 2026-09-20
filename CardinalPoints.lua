@@ -104,22 +104,29 @@ for angle = 0, 345, 15 do
     end
 end
 
---- Set how much compass detail is shown: 0 hides everything, 1 shows only N/E/S/W,
---- 2 (the default) adds the intercardinal directions, 3 adds a tick every 15 degrees.
+--- Render a detail level (0-3) without changing the remembered preference: 0 hides
+--- everything, 1 shows only N/E/S/W, 2 adds the intercardinal directions, 3 adds a tick
+--- every 15 degrees.
 --- @param level number
 local function applyDetail(level)
     setElementsEnabled(cardinalElements, level >= 1)
     setElementsEnabled(intercardinalElements, level >= 2)
     setElementsEnabled(pipElements, level >= 3)
     api.SetCenterLineShown(level >= 1)
+end
+
+--- Set the user's preferred detail level: applies it now and remembers it for Show().
+--- @param level number
+local function setDetail(level)
+    applyDetail(level)
     WayfinderSettings.compassDetail = level
 end
 
 api.CardinalPoints = {
-    Show = function() applyDetail(2) end,
+    Show = function() applyDetail(WayfinderSettings.compassDetail or DEFAULT_DETAIL) end,
     Hide = function() applyDetail(0) end,
-    SetDetail = applyDetail,
+    SetDetail = setDetail,
     GetDetail = function() return WayfinderSettings.compassDetail end,
 }
 
-applyDetail(WayfinderSettings.compassDetail or DEFAULT_DETAIL)
+setDetail(WayfinderSettings.compassDetail or DEFAULT_DETAIL)
