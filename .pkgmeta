@@ -1,0 +1,8 @@
+externals:
+  Libs/LibStub:
+    url: https://github.com/WoWUIDev/Ace3.git
+    path: LibStub
+  Libs/CallbackHandler-1.0:
+    url: https://github.com/WoWUIDev/Ace3.git
+    path: CallbackHandler-1.0
+  Libs/HereBeDragons: https://github.com/Nevcairiel/HereBeDragons.git

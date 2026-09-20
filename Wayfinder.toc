@@ -1,5 +1,5 @@
 ## Interface: 120100,16001
-## Version: 1.0.0-alpha.7
+## Version: @project-version@
 ## Title: Wayfinder
 ## Author: Wyomarus
 ## Notes: A simple addon to help you find your way around the world of Azeroth.
