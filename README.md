@@ -20,9 +20,11 @@ Welcome to Wayfinder, an addon for World of Warcraft that enhances your navigati
 
 ## Usage
 
-Once installed, Wayfinder will automatically display a compass banner at the top of your screen when you log into the game. The banner shows cardinal and intercardinal directions plus a marker and distance readout for whatever you're currently super-tracking (a quest, a waypoint, etc.). It hides itself automatically while you're inside an instance.
+Once installed, Wayfinder will automatically display a compass banner at the top of your screen when you log into the game. The banner shows cardinal and intercardinal directions plus a marker, distance, and ETA readout for whatever you're currently super-tracking (a quest, a waypoint, a corpse run, etc.). It hides itself automatically while you're inside an instance.
 
-SuperTracking currently follows quests, user-placed waypoints, area POIs, and taxi nodes. Other trackable target types (corpse runs, scenarios, world content, party members, vignettes) aren't handled yet, so the marker just won't appear for those.
+The banner is locked in place by default; `/wayfinder unlock` it to drag it to a new spot, then `/wayfinder lock` it back down - see [Commands](#commands).
+
+SuperTracking currently follows quests, user-placed waypoints, area POIs, taxi nodes, and your own corpse. Other trackable target types (scenarios, world content, party members, vignettes) aren't handled yet, so the marker just won't appear for those.
 
 ## Commands
 
@@ -32,10 +34,14 @@ All commands are available under `/wayfinder` or the shorter `/wf`.
 | --- | --- |
 | `/wayfinder show` | Show the compass banner |
 | `/wayfinder hide` | Hide the compass banner |
+| `/wayfinder lock` | Lock the compass banner in place |
+| `/wayfinder unlock` | Unlock the compass banner so it can be dragged to a new position |
+| `/wayfinder resetposition` | Reset the compass banner to its default position |
 | `/wayfinder compass enable\|disable` | Enable or disable the cardinal/intercardinal direction markers |
 | `/wayfinder detail <0-3>` | Set how much compass detail is shown (0 = none, 3 = cardinals + intercardinals + 15° ticks) |
 | `/wayfinder tracking enable\|disable` | Enable or disable the SuperTracking marker |
 | `/wayfinder distance enable\|disable` | Show or hide the SuperTracking distance readout |
+| `/wayfinder eta enable\|disable` | Show or hide the SuperTracking ETA readout |
 | `/wayfinder debug tracking` | Print SuperTracking diagnostic info, for troubleshooting a missing marker |
 
 ## Contributing
