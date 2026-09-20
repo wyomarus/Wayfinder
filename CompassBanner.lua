@@ -177,6 +177,7 @@ local function setBannerLocked(locked)
     frame:EnableMouse(not locked)
     frame:SetMovable(not locked)
     frame.dragBackground:SetShown(not locked)
+    Settings.NotifyUpdate("WayfinderLockBanner")
 end
 setBannerLocked(true)
 
@@ -287,15 +288,22 @@ local function onUpdate()
     end
 end
 
+-- Settings.NotifyUpdate is a no-op if the named setting isn't registered yet (e.g. before
+-- Settings.lua has loaded), so it's safe to call unconditionally here. It's how the
+-- Settings panel's "Show compass banner" checkbox stays in sync when the banner is shown
+-- or hidden through some other path - a slash command, the minimap button, or Events.lua
+-- auto-hiding it in instances - rather than through the checkbox itself.
 local function enableCompassBanner()
     addon.CompassBannerFrame:Show()
     addon.CompassBannerFrame:SetScript("OnUpdate", onUpdate)
+    Settings.NotifyUpdate("WayfinderShowBanner")
 end
 _p.enableCompassBanner = enableCompassBanner
 
 local function disableCompassBanner()
     addon.CompassBannerFrame:Hide()
     addon.CompassBannerFrame:SetScript("OnUpdate", nil)
+    Settings.NotifyUpdate("WayfinderShowBanner")
 end
 _p.disableCompassBanner = disableCompassBanner
 
