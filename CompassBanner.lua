@@ -23,8 +23,6 @@ _C.BANNER_WIDTH = BANNER_WIDTH
 _C.BANNER_HEIGHT = BANNER_HEIGHT
 _C.FOV = FOV
 
-local playerFacing
-
 local elements = {}
 
 --- Add an element to the compass banner.
@@ -68,17 +66,17 @@ end
 
 api.SetElementEnabled = setElementEnabled
 
--- Create the frame for the compass banner
+--- Create the frame for the compass banner, including the center "straight ahead" line.
+--- @return table frame
 local function buildCompassBannerFrame()
     local frame = CreateFrame("Frame", "WayfinderCompassBannerFrame", UIParent)
     frame:SetSize(BANNER_WIDTH, BANNER_HEIGHT)
     frame:SetPoint("TOP", 0, -10)
 
-    -- Create a texture for the vertical line marking straight ahead
     local line = frame:CreateTexture(nil, "OVERLAY")
-    line:SetColorTexture(1, 1, 1, 1)               -- White color, fully opaque
-    line:SetSize(2, frame:GetHeight())             -- Width of 2 pixels, height same as the frame
-    line:SetPoint("CENTER", frame, "CENTER", 0, 0) -- Centered vertically in the frame
+    line:SetColorTexture(1, 1, 1, 1)
+    line:SetSize(2, frame:GetHeight())
+    line:SetPoint("CENTER", frame, "CENTER", 0, 0)
     frame.centerLine = line
 
     return frame
@@ -104,17 +102,9 @@ local function asDegrees(radians)
     return (degrees % 360 + 360) % 360 -- normalize to [0, 360)
 end
 
---    local function asRadians(degrees)
---        degrees = 360 - degrees -- adjust for counterclockwise rotation
---        return rad(degrees)
---    end
-
---    local function getRelativeAngle(angle1, angle2)
---        local relativeAngle = angle1 - angle2
---        return (relativeAngle % 360 + 360) % 360
---    end
-
--- Normalize angle to [-180, 180)
+--- Normalize an angle to [-180, 180).
+--- @param angle number|nil
+--- @return number|nil
 local function normalizeAngle180(angle)
     if not angle then return end
 
@@ -158,21 +148,19 @@ local function calculateBannerPosition(relativeAngle, isSticky, element)
 end
 
 local function updateElementPosition(element, position)
-    if element.uiElement:GetPoint() ~= position then
+    if element.lastPosition ~= position then
         element.uiElement:SetPoint("CENTER", addon.CompassBannerFrame, "CENTER", position, 0)
+        element.lastPosition = position
     end
     element.uiElement:Show()
 end
 
-local function processElement(element)
+local function processElement(element, facing)
     if not element then return end
     if not element.enabled then return end
 
-    playerFacing = GetPlayerFacing() -- could also check if player is in an instance
-    if not playerFacing then return end
-
     local angle = element.angleFunction() -- this is the big call to avoid when possible
-    local relativeAngle = angle and getRelativeAngleTo(angle, playerFacing)
+    local relativeAngle = angle and getRelativeAngleTo(angle, facing)
 
     if not relativeAngle then
         element.uiElement:Hide()
@@ -188,8 +176,11 @@ local function processElement(element)
 end
 
 local function onUpdate()
+    local facing = GetPlayerFacing()
+    if not facing then return end
+
     for _, element in ipairs(elements) do
-        processElement(element)
+        processElement(element, facing)
     end
 end
 

@@ -2,9 +2,10 @@
 -- Create Date : 9/7/2024 5:11:21 PM
 
 local addonName, addon = ...
-_G[addonName] = addon
+_G[addonName] = addon -- expose the addon table globally by name, for in-game inspection/debugging
 
--- Addon namespaces
+-- Addon namespaces. Each carries a "$Info" key as a self-documenting description,
+-- readable via /dump or /script in-game without needing to open the source.
 addon.API = addon.API or {
     ["$Info"] = "API functions for the Wayfinder addon."
 }
@@ -29,12 +30,14 @@ assert(LibStub, addonName .. " requires LibStub")
 local print = print
 local format = string.format
 
--- Global helper functions --
+-- Global helper functions
 
--- Binds a method to an object, creating a closure
--- to capture the object as the first argument
--- so it can be called as a function without the object reference as the first argument
--- (i.e. obj:method() instead of obj.method(obj)).
+--- Bind a method to an object, returning a closure that captures the object as the
+--- first argument so it can be called without it (i.e. obj:method() instead of
+--- obj.method(obj)).
+--- @param obj table
+--- @param method function
+--- @return function
 local function bind(obj, method)
     assert(type(obj) == "table", "Expected obj to be a table")
     assert(type(method) == "function", "Expected method to be a function")
@@ -45,7 +48,8 @@ local function bind(obj, method)
 end
 _p.bind = bind
 
--- Print a table to the default chat frame
+--- Print a table's key/value pairs to the default chat frame.
+--- @param tbl table
 local function printTable(tbl)
     assert(type(tbl) == "table", "Expected tbl to be a table")
 

@@ -1,3 +1,7 @@
+manual-changelog:
+  filename: RELEASE.md
+  markup-type: markdown
+
 externals:
   Libs/LibStub:
     url: https://github.com/WoWUIDev/Ace3.git
@@ -6,3 +10,15 @@ externals:
     url: https://github.com/WoWUIDev/Ace3.git
     path: CallbackHandler-1.0
   Libs/HereBeDragons: https://github.com/Nevcairiel/HereBeDragons.git
+
+# HereBeDragons vendors its own copies of LibStub/CallbackHandler-1.0 (for standalone use)
+# and ships Migrate/Pins submodules and a .toc we don't load via embeds.xml - none of it is
+# reachable from this addon, so exclude it from the packaged zip. The source stays in the
+# repo if HereBeDragons-Pins-2.0 (map pin support) is ever wanted later.
+ignore:
+  - Libs/HereBeDragons/CallbackHandler-1.0
+  - Libs/HereBeDragons/LibStub
+  - Libs/HereBeDragons/HereBeDragons.toc
+  - Libs/HereBeDragons/HereBeDragons-Migrate.lua
+  - Libs/HereBeDragons/HereBeDragons-Pins-2.0.lua
+  - Libs/HereBeDragons/CHANGELOG.md
