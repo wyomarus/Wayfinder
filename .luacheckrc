@@ -9,12 +9,14 @@ ignore = {
 
 globals = {
 	-- Saved Variables
+	"WayfinderDebug",
 
 	-- WIM
 	"WIM",
 	"debug",
 
 	-- Lua
+	"date",
 
 	-- Utility functions
 
@@ -29,6 +31,7 @@ globals = {
     "C_SuperTrack",
     "C_AreaPoiInfo",
     "C_TaxiMap",
+    "C_Navigation",
 
     -- Libs
     "LibStub"
