@@ -66,6 +66,16 @@ local function DisableTrackingDistance()
     print("SuperTracking distance readout disabled.")
 end
 
+local function EnableTrackingETA()
+    api.SuperTracking.SetShowETA(true)
+    print("SuperTracking ETA readout enabled.")
+end
+
+local function DisableTrackingETA()
+    api.SuperTracking.SetShowETA(false)
+    print("SuperTracking ETA readout disabled.")
+end
+
 local function SetCompassDetail(arg)
     local DetailLevel = _C.CompassDetail
     local level = tonumber(arg)
@@ -93,6 +103,7 @@ local function PrintUsage()
     print("/wayfinder detail <0-3> - Set how much compass detail is shown")
     print("/wayfinder tracking enable|disable - Enable or disable SuperTracking")
     print("/wayfinder distance enable|disable - Show or hide the SuperTracking distance readout")
+    print("/wayfinder eta enable|disable - Show or hide the SuperTracking ETA readout")
     print("/wayfinder debug tracking - Print SuperTracking diagnostic info")
 end
 
@@ -114,6 +125,10 @@ local commandHandlers = {
     distance = {
         enable = EnableTrackingDistance,
         disable = DisableTrackingDistance,
+    },
+    eta = {
+        enable = EnableTrackingETA,
+        disable = DisableTrackingETA,
     },
     debug = {
         tracking = DebugSuperTracking,

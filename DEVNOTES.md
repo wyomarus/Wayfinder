@@ -13,7 +13,8 @@ Coding conventions and operational notes for contributors, kept separate from [H
 
 ## Known issues
 
-- **WoW: Forever beta - SavedVariables not reliably read back.** Confirmed independently of this addon: https://github.com/ClassicWoWCommunity/forever-bugs/issues/34. `Wayfinder.toc`'s `LoadSavedVariablesFirst` is the correct mitigation, but it can't fully work around the underlying client bug - `WayfinderSettings.compassDetail` may silently revert on reload until Blizzard fixes it. See the comments in [CardinalPoints.lua](CardinalPoints.lua) and [SuperTracking.lua](SuperTracking.lua).
+- **WoW: Forever beta - SavedVariables not reliably read back.** Confirmed independently of this addon: https://github.com/ClassicWoWCommunity/forever-bugs/issues/34. `Wayfinder.toc`'s `LoadSavedVariablesFirst` is the correct mitigation, but it can't fully work around the underlying client bug - any `WayfinderSettings` value (compass detail, distance/ETA visibility, banner position) may silently revert on reload until Blizzard fixes it. See the comments in [CardinalPoints.lua](CardinalPoints.lua), [SuperTracking.lua](SuperTracking.lua), and [CompassBanner.lua](CompassBanner.lua).
+- **WoW 12.0+ secret values.** Combat-related APIs (e.g. `GetUnitSpeed`) can return an opaque "secret" value while in combat, part of Blizzard's addon-disarmament system - arithmetic, comparison, and even `tostring()`/`print()` on one throws under tainted execution. Check `issecretvalue(value)` before touching a value from any such API and degrade gracefully (see `updateSuperTrackingReadout` and `debugSuperTracking` in [SuperTracking.lua](SuperTracking.lua)) rather than assuming a plain number.
 
 ## Reference
 
