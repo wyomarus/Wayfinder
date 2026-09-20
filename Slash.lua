@@ -17,6 +17,21 @@ local function HideCompassBanner()
     print("Compass banner hidden.")
 end
 
+local function LockCompassBanner()
+    api.CompassBanner.Lock()
+    print("Compass banner locked.")
+end
+
+local function UnlockCompassBanner()
+    api.CompassBanner.Unlock()
+    print("Compass banner unlocked. Drag it to reposition, then /wayfinder lock to lock it back in place.")
+end
+
+local function ResetCompassBannerPosition()
+    api.CompassBanner.ResetPosition()
+    print("Compass banner position reset to default.")
+end
+
 local function EnableCardinalPoints()
     api.CardinalPoints:Show()
     print("CardinalPoints enabled.")
@@ -71,6 +86,9 @@ local function PrintUsage()
     print("Usage:")
     print("/wayfinder show - Show the compass banner")
     print("/wayfinder hide - Hide the compass banner")
+    print("/wayfinder lock - Lock the compass banner in place")
+    print("/wayfinder unlock - Unlock the compass banner so it can be dragged")
+    print("/wayfinder resetposition - Reset the compass banner to its default position")
     print("/wayfinder compass enable|disable - Enable or disable the CardinalPoints")
     print("/wayfinder detail <0-3> - Set how much compass detail is shown")
     print("/wayfinder tracking enable|disable - Enable or disable SuperTracking")
@@ -81,6 +99,9 @@ end
 local commandHandlers = {
     show = ShowCompassBanner,
     hide = HideCompassBanner,
+    lock = LockCompassBanner,
+    unlock = UnlockCompassBanner,
+    resetposition = ResetCompassBannerPosition,
     compass = {
         enable = EnableCardinalPoints,
         disable = DisableCardinalPoints,

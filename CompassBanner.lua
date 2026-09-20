@@ -18,6 +18,9 @@ local HALF_BANNER_WIDTH = BANNER_WIDTH / 2
 local BANNER_HEIGHT = 25
 local FOV = 135
 local HALF_FOV = FOV / 2
+local DEFAULT_BANNER_POINT = "TOP"
+local DEFAULT_BANNER_X = 0
+local DEFAULT_BANNER_Y = -10
 
 _C.BANNER_WIDTH = BANNER_WIDTH
 _C.BANNER_HEIGHT = BANNER_HEIGHT
@@ -83,18 +86,26 @@ end
 
 api.SetElementEnabled = setElementEnabled
 
---- Create the frame for the compass banner, including the center "straight ahead" line.
+--- Create the frame for the compass banner, including the center "straight ahead" line
+--- and a background shown only while unlocked, to make the draggable area visible.
 --- @return table frame
 local function buildCompassBannerFrame()
     local frame = CreateFrame("Frame", "WayfinderCompassBannerFrame", UIParent)
     frame:SetSize(BANNER_WIDTH, BANNER_HEIGHT)
-    frame:SetPoint("TOP", 0, -10)
+    frame:SetPoint(DEFAULT_BANNER_POINT, DEFAULT_BANNER_X, DEFAULT_BANNER_Y)
+    frame:RegisterForDrag("LeftButton")
 
     local line = frame:CreateTexture(nil, "OVERLAY")
     line:SetColorTexture(1, 1, 1, 1)
     line:SetSize(2, frame:GetHeight())
     line:SetPoint("CENTER", frame, "CENTER", 0, 0)
     frame.centerLine = line
+
+    local background = frame:CreateTexture(nil, "BACKGROUND")
+    background:SetAllPoints(frame)
+    background:SetColorTexture(0, 0, 0, 0.4)
+    background:Hide()
+    frame.dragBackground = background
 
     return frame
 end
@@ -112,6 +123,79 @@ local function setCenterLineShown(shown)
 end
 
 api.SetCenterLineShown = setCenterLineShown
+
+-- Known WoW: Forever beta bug affecting SavedVariables persistence in general - see
+-- CardinalPoints.lua's compassDetail comment for details.
+WayfinderSettings = WayfinderSettings or {}
+
+--- Remember the banner's current position so it can be restored on the next load.
+local function saveBannerPosition()
+    local point, _, relativePoint, xOfs, yOfs = addon.CompassBannerFrame:GetPoint()
+    WayfinderSettings.bannerPoint = point
+    WayfinderSettings.bannerRelativePoint = relativePoint
+    WayfinderSettings.bannerX = xOfs
+    WayfinderSettings.bannerY = yOfs
+end
+
+--- Restore a previously saved banner position, if there is one.
+local function applySavedBannerPosition()
+    if not WayfinderSettings.bannerPoint then return end
+
+    addon.CompassBannerFrame:ClearAllPoints()
+    addon.CompassBannerFrame:SetPoint(
+        WayfinderSettings.bannerPoint,
+        UIParent,
+        WayfinderSettings.bannerRelativePoint,
+        WayfinderSettings.bannerX,
+        WayfinderSettings.bannerY
+    )
+end
+
+applySavedBannerPosition()
+
+--- Reset the banner to its default position, clearing any previously saved position.
+local function resetBannerPosition()
+    WayfinderSettings.bannerPoint = nil
+    WayfinderSettings.bannerRelativePoint = nil
+    WayfinderSettings.bannerX = nil
+    WayfinderSettings.bannerY = nil
+
+    addon.CompassBannerFrame:ClearAllPoints()
+    addon.CompassBannerFrame:SetPoint(DEFAULT_BANNER_POINT, DEFAULT_BANNER_X, DEFAULT_BANNER_Y)
+end
+
+local bannerLocked = true
+
+--- Lock or unlock the banner for dragging. Locked (the default) behaves exactly as
+--- before - mouse clicks pass through it. Unlocked shows a background so its bounds
+--- are visible and lets it be dragged to a new position, which is then remembered.
+--- @param locked boolean
+local function setBannerLocked(locked)
+    bannerLocked = locked
+
+    local frame = addon.CompassBannerFrame
+    frame:EnableMouse(not locked)
+    frame:SetMovable(not locked)
+    frame.dragBackground:SetShown(not locked)
+end
+setBannerLocked(true)
+
+addon.CompassBannerFrame:SetScript("OnDragStart", function(frame)
+    if bannerLocked then return end
+    frame:StartMoving()
+end)
+
+addon.CompassBannerFrame:SetScript("OnDragStop", function(frame)
+    frame:StopMovingOrSizing()
+    saveBannerPosition()
+end)
+
+api.CompassBanner = {
+    Lock = function() setBannerLocked(true) end,
+    Unlock = function() setBannerLocked(false) end,
+    IsLocked = function() return bannerLocked end,
+    ResetPosition = resetBannerPosition,
+}
 
 local function asDegrees(radians)
     local degrees = deg(radians)
