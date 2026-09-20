@@ -17,5 +17,6 @@ CompassBanner.lua
 CardinalPoints.lua
 SuperTracking.lua
 Settings.lua
+MinimapButton.lua
 Events.lua
 Slash.lua

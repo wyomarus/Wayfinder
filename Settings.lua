@@ -10,6 +10,10 @@ local DetailLevel = _C.CompassDetail
 local category, layout = Settings.RegisterVerticalLayoutCategory("Wayfinder")
 Settings.RegisterAddOnCategory(category)
 
+api.Settings = {
+    Open = function() Settings.OpenToCategory(category:GetID()) end,
+}
+
 --- Register a setting backed by custom get/set callbacks rather than a direct
 --- WayfinderSettings binding, so changing it in the panel goes through the same api.*
 --- functions the slash commands use, keeping each module's own cached state in sync.
