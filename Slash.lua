@@ -2,6 +2,7 @@
 
 local _, addon = ...
 local _p = addon.private
+local api = addon.API
 
 local print = print
 
@@ -35,12 +36,17 @@ local function DisableSuperTracking()
     print("SuperTracking disabled.")
 end
 
+local function DebugSuperTracking()
+    api.DebugSuperTracking()
+end
+
 local function PrintUsage()
     print("Usage:")
     print("/wayfinder show - Show the compass banner")
     print("/wayfinder hide - Hide the compass banner")
     print("/wayfinder compass enable|disable - Enable or disable the CardinalPoints")
     print("/wayfinder tracking enable|disable - Enable or disable SuperTracking")
+    print("/wayfinder debug tracking - Print SuperTracking diagnostic info")
 end
 
 local commandHandlers = {
@@ -53,7 +59,10 @@ local commandHandlers = {
     tracking = {
         enable = EnableSuperTracking,
         disable = DisableSuperTracking,
-    }
+    },
+    debug = {
+        tracking = DebugSuperTracking,
+    },
 }
 
 local function HandleSlashCommands(msg)
