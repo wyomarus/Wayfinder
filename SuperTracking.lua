@@ -247,6 +247,12 @@ if showTrackingETA == nil then
 end
 WayfinderSettings.showTrackingETA = showTrackingETA
 
+local trackingEnabled = WayfinderSettings.trackingEnabled
+if trackingEnabled == nil then
+    trackingEnabled = true
+end
+WayfinderSettings.trackingEnabled = trackingEnabled
+
 --- Apply the live SuperTracking icon to our marker. Retries each update until
 --- SuperTrackedFrame is available (starting SuperTracking is what creates it), and
 --- re-applies whenever the atlas itself changes, since Blizzard uses a different icon
@@ -482,13 +488,21 @@ superTrackingElement = api.AddElementToBanner(
     createSuperTrackingMarker,
     isSticky
 )
+api.SetElementEnabled(superTrackingElement, trackingEnabled)
 
 api.SuperTracking = {
-    Enable = function() api.SetElementEnabled(superTrackingElement, true) end,
+    Enable = function()
+        api.SetElementEnabled(superTrackingElement, true)
+        trackingEnabled = true
+        WayfinderSettings.trackingEnabled = true
+    end,
     Disable = function()
         api.SetElementEnabled(superTrackingElement, false)
         updateSuperTrackingReadout(nil)
+        trackingEnabled = false
+        WayfinderSettings.trackingEnabled = false
     end,
+    IsEnabled = function() return trackingEnabled end,
     SetShowDistance = function(shown)
         showTrackingDistance = shown
         WayfinderSettings.showTrackingDistance = shown

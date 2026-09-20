@@ -195,6 +195,7 @@ api.CompassBanner = {
     Unlock = function() setBannerLocked(false) end,
     IsLocked = function() return bannerLocked end,
     ResetPosition = resetBannerPosition,
+    IsShown = function() return addon.CompassBannerFrame:IsShown() end,
 }
 
 local function asDegrees(radians)

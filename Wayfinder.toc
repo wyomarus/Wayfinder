@@ -16,5 +16,6 @@ Wayfinder.lua
 CompassBanner.lua
 CardinalPoints.lua
 SuperTracking.lua
+Settings.lua
 Events.lua
 Slash.lua

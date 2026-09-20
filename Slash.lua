@@ -83,8 +83,8 @@ local function SetCompassDetail(arg)
         print("Usage: /wayfinder detail <0-3>")
         print(" 0 - hide compass detail entirely")
         print(" 1 - cardinal directions only (N, E, S, W)")
-        print(" 2 - cardinal and intercardinal directions (default)")
-        print(" 3 - cardinal, intercardinal, and a tick every 15 degrees")
+        print(" 2 - cardinal and intercardinal directions")
+        print(" 3 - cardinal, intercardinal, and a tick every 15 degrees (default)")
         return
     end
 
