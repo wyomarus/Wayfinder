@@ -10,6 +10,7 @@ ignore = {
 globals = {
 	-- Saved Variables
 	"WayfinderDebug",
+	"WayfinderSettings",
 
 	-- WIM
 	"WIM",
@@ -35,6 +36,8 @@ globals = {
     "C_AreaPoiInfo",
     "C_TaxiMap",
     "C_Navigation",
+    "AbbreviateNumbers",
+    "IN_GAME_NAVIGATION_RANGE",
 
     -- Libs
     "LibStub"

@@ -3,6 +3,7 @@
 local _, addon = ...
 local _p = addon.private
 local api = addon.API
+local _C = addon.Constants
 
 local print = print
 
@@ -40,12 +41,40 @@ local function DebugSuperTracking()
     api.DebugSuperTracking()
 end
 
+local function EnableTrackingDistance()
+    api.SuperTracking.SetShowDistance(true)
+    print("SuperTracking distance readout enabled.")
+end
+
+local function DisableTrackingDistance()
+    api.SuperTracking.SetShowDistance(false)
+    print("SuperTracking distance readout disabled.")
+end
+
+local function SetCompassDetail(arg)
+    local DetailLevel = _C.CompassDetail
+    local level = tonumber(arg)
+    if not level or level < DetailLevel.None or level > DetailLevel.Pips or level % 1 ~= 0 then
+        print("Usage: /wayfinder detail <0-3>")
+        print(" 0 - hide compass detail entirely")
+        print(" 1 - cardinal directions only (N, E, S, W)")
+        print(" 2 - cardinal and intercardinal directions (default)")
+        print(" 3 - cardinal, intercardinal, and a tick every 15 degrees")
+        return
+    end
+
+    api.CardinalPoints.SetDetail(level)
+    print("Compass detail set to " .. level .. ".")
+end
+
 local function PrintUsage()
     print("Usage:")
     print("/wayfinder show - Show the compass banner")
     print("/wayfinder hide - Hide the compass banner")
     print("/wayfinder compass enable|disable - Enable or disable the CardinalPoints")
+    print("/wayfinder detail <0-3> - Set how much compass detail is shown")
     print("/wayfinder tracking enable|disable - Enable or disable SuperTracking")
+    print("/wayfinder distance enable|disable - Show or hide the SuperTracking distance readout")
     print("/wayfinder debug tracking - Print SuperTracking diagnostic info")
 end
 
@@ -56,9 +85,14 @@ local commandHandlers = {
         enable = EnableCardinalPoints,
         disable = DisableCardinalPoints,
     },
+    detail = SetCompassDetail,
     tracking = {
         enable = EnableSuperTracking,
         disable = DisableSuperTracking,
+    },
+    distance = {
+        enable = EnableTrackingDistance,
+        disable = DisableTrackingDistance,
     },
     debug = {
         tracking = DebugSuperTracking,
@@ -70,7 +104,7 @@ local function HandleSlashCommands(msg)
     local handler = commandHandlers[command]
 
     if type(handler) == "function" then
-        handler()
+        handler(subcommand)
     elseif type(handler) == "table" then
         local subHandler = handler[subcommand]
         if type(subHandler) == "function" then
