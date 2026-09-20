@@ -128,10 +128,13 @@ local GetWorldCoordinatesFromZone = bind(hbd, hbd.GetWorldCoordinatesFromZone)
 -- local functions
 -- forward declarations
 local trackingFunctions
+local updateSuperTrackingIcon
 
 --- Callback for the SuperTracking element on the compass banner.
 local function superTrackingCallback()
     if not IsSuperTrackingAnything() then return end
+
+    updateSuperTrackingIcon()
 
     local playerX, playerY, instanceId = GetPlayerWorldPosition()
     if not (playerX and playerY and instanceId) then return end
@@ -234,28 +237,31 @@ trackingFunctions = {
     [Enum.SuperTrackingType.Vignette] = functionNotImplemented,
 }
 
+-- SuperTrackedFrame belongs to the on-demand Blizzard_QuestNavigation module, so it may not
+-- exist yet at addon load time. Its icon is also an atlas texture (Navigation-Tracked-Icon),
+-- not a plain image file, so it has to be copied with GetAtlas/SetAtlas rather than
+-- GetTexture/SetTexCoord.
 local SuperTrackedFrame = _G["SuperTrackedFrame"]
-local superTrackingIconTexture = nil
-
-local function getSuperTrackingIconTexture()
-    if superTrackingIconTexture then return superTrackingIconTexture end
-    local superTrackedIcon = SuperTrackedFrame and SuperTrackedFrame.Icon
-    local texture = superTrackedIcon and superTrackedIcon:GetTexture()
-    if texture then
-        superTrackingIconTexture = texture
-        return texture
-    end
-end
-
 local superTrackingMarker = nil
+local superTrackingIconApplied = false
+
+--- Apply the live SuperTracking icon to our marker, retrying each update until
+--- SuperTrackedFrame is available (starting SuperTracking is what creates it).
+updateSuperTrackingIcon = function()
+    if superTrackingIconApplied then return end
+
+    local superTrackedIcon = SuperTrackedFrame and SuperTrackedFrame.Icon
+    local atlas = superTrackedIcon and superTrackedIcon:GetAtlas()
+    if not atlas then return end
+
+    superTrackingMarker:SetAtlas(atlas, true)
+    superTrackingIconApplied = true
+end
 
 --- Create the SuperTracking marker for the compass banner
 local function createSuperTrackingMarker(frame)
     if superTrackingMarker then return superTrackingMarker end
-    local superTrackedIconTexture = getSuperTrackingIconTexture()
     local marker = frame:CreateTexture(nil, "OVERLAY")
-    marker:SetTexture(superTrackedIconTexture)
-    marker:SetTexCoord(0.5, 1.0, 0.0, 0.5) -- should be the upper-right quadrant
     marker:SetSize(25, 25)
     superTrackingMarker = marker
     return marker
