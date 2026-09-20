@@ -249,8 +249,23 @@ local function createSuperTrackingMarker(frame)
     return marker
 end
 
+--- Format a distance the same way Blizzard's own SuperTrackedFrame does: round to a
+--- whole number, then abbreviate it (e.g. "1.2k") once it's four digits or more.
+--- @param distance number
+--- @return string
+local function formatDistance(distance)
+    local rounded = math.floor(distance + 0.5)
+    if rounded < 1000 then
+        return tostring(rounded)
+    else
+        return AbbreviateNumbers(rounded)
+    end
+end
+
 --- Show the given distance below the marker, or hide the text if there's nothing to show
---- or the user has turned the distance readout off.
+--- or the user has turned the distance readout off. Uses Blizzard's own localized
+--- IN_GAME_NAVIGATION_RANGE string (the same one SuperTrackedFrame uses) rather than a
+--- hardcoded unit suffix, since the distance unit label isn't the same in every locale.
 --- @param distance number|nil Distance to the super-tracked target, in yards.
 setSuperTrackingDistanceText = function(distance)
     if not showTrackingDistance or not distance then
@@ -258,7 +273,7 @@ setSuperTrackingDistanceText = function(distance)
         return
     end
 
-    superTrackingDistanceText:SetText(math.floor(distance + 0.5) .. " yd")
+    superTrackingDistanceText:SetText(IN_GAME_NAVIGATION_RANGE:format(formatDistance(distance)))
     superTrackingDistanceText:Show()
 end
 
