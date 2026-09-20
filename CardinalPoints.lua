@@ -126,10 +126,14 @@ local function applyDetail(level)
 end
 
 --- Set the user's preferred detail level: applies it now and remembers it for Show().
+--- Settings.NotifyUpdate is a no-op if the setting isn't registered yet, so it's safe to
+--- call unconditionally - it's how the Settings panel's dropdown stays in sync when the
+--- detail level changes via a slash command instead of the dropdown itself.
 --- @param level number
 local function setDetail(level)
     applyDetail(level)
     WayfinderSettings.compassDetail = level
+    Settings.NotifyUpdate("WayfinderCompassDetail")
 end
 
 api.CardinalPoints = {

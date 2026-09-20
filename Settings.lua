@@ -1,14 +1,20 @@
 -- Settings integrates Wayfinder's options into Blizzard's native addon Settings panel.
 
-local _, addon = ...
+local addonName, addon = ...
 local _p = addon.private
 local api = addon.API
 local _C = addon.Constants
+
+local GetAddOnMetadata = C_AddOns.GetAddOnMetadata
 
 local DetailLevel = _C.CompassDetail
 
 local category, layout = Settings.RegisterVerticalLayoutCategory("Wayfinder")
 Settings.RegisterAddOnCategory(category)
+
+api.Settings = {
+    Open = function() Settings.OpenToCategory(category:GetID()) end,
+}
 
 --- Register a setting backed by custom get/set callbacks rather than a direct
 --- WayfinderSettings binding, so changing it in the panel goes through the same api.*
@@ -97,3 +103,40 @@ local etaCheckbox = Settings.CreateCheckbox(
     category, etaSetting, "Show an estimated time of arrival to the super-tracked target."
 )
 etaCheckbox:SetParentInitializer(trackingCheckbox, function() return trackingSetting:GetValue() end)
+
+-- A canvas subcategory, unlike the vertical layout used above, hands us a plain frame with
+-- no list of its own - full control over layout, which a page of static "about" info wants
+-- and a list of settings controls doesn't.
+local aboutFrame = CreateFrame("Frame")
+
+local watermark = aboutFrame:CreateTexture(nil, "BACKGROUND")
+watermark:SetTexture("Interface\\AddOns\\Wayfinder\\Media\\Icon.jpg")
+watermark:SetSize(256, 256)
+watermark:SetPoint("CENTER")
+watermark:SetAlpha(0.12)
+
+local icon = aboutFrame:CreateTexture(nil, "ARTWORK")
+icon:SetTexture("Interface\\AddOns\\Wayfinder\\Media\\Icon.jpg")
+icon:SetSize(64, 64)
+icon:SetPoint("TOPLEFT", 16, -16)
+
+local title = aboutFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+title:SetPoint("TOPLEFT", icon, "TOPRIGHT", 12, -4)
+title:SetText(GetAddOnMetadata(addonName, "Title") or addonName)
+
+local version = aboutFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+version:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
+version:SetText("Version " .. (GetAddOnMetadata(addonName, "Version") or "unknown"))
+
+local author = aboutFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+author:SetPoint("TOPLEFT", version, "BOTTOMLEFT", 0, -2)
+author:SetText("By " .. (GetAddOnMetadata(addonName, "Author") or "unknown") .. " - MIT License")
+
+local notes = aboutFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+notes:SetPoint("TOPLEFT", icon, "BOTTOMLEFT", 0, -20)
+notes:SetPoint("RIGHT", aboutFrame, "RIGHT", -16, 0)
+notes:SetJustifyH("LEFT")
+notes:SetJustifyV("TOP")
+notes:SetText(GetAddOnMetadata(addonName, "Notes") or "")
+
+Settings.RegisterCanvasLayoutSubcategory(category, aboutFrame, "About")

@@ -490,28 +490,35 @@ superTrackingElement = api.AddElementToBanner(
 )
 api.SetElementEnabled(superTrackingElement, trackingEnabled)
 
+-- Settings.NotifyUpdate is a no-op if the named setting isn't registered yet, so it's
+-- safe to call unconditionally below - it's how the Settings panel's checkboxes stay in
+-- sync when these are changed via a slash command instead of the panel itself.
 api.SuperTracking = {
     Enable = function()
         api.SetElementEnabled(superTrackingElement, true)
         trackingEnabled = true
         WayfinderSettings.trackingEnabled = true
+        Settings.NotifyUpdate("WayfinderTrackingEnabled")
     end,
     Disable = function()
         api.SetElementEnabled(superTrackingElement, false)
         updateSuperTrackingReadout(nil)
         trackingEnabled = false
         WayfinderSettings.trackingEnabled = false
+        Settings.NotifyUpdate("WayfinderTrackingEnabled")
     end,
     IsEnabled = function() return trackingEnabled end,
     SetShowDistance = function(shown)
         showTrackingDistance = shown
         WayfinderSettings.showTrackingDistance = shown
         updateSuperTrackingETAAnchor()
+        Settings.NotifyUpdate("WayfinderShowDistance")
     end,
     GetShowDistance = function() return showTrackingDistance end,
     SetShowETA = function(shown)
         showTrackingETA = shown
         WayfinderSettings.showTrackingETA = shown
+        Settings.NotifyUpdate("WayfinderShowETA")
     end,
     GetShowETA = function() return showTrackingETA end,
 }
