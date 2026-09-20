@@ -1,6 +1,6 @@
 -- SuperTracking manages the SuperTracking icon on the compass banner.
 
-local addonName, addon = ...
+local _, addon = ...
 local _p = addon.private
 local api = addon.API
 

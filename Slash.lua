@@ -1,6 +1,6 @@
 -- Slash commands
 
-local addonName, addon = ...
+local _, addon = ...
 local _p = addon.private
 
 local print = print

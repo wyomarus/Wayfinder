@@ -22,8 +22,6 @@ addon.Constants = addon.Constants or {
 }
 
 local _p = addon.private
-local api = addon.API
-local _C = addon.Constants
 
 assert(LibStub, addonName .. " requires LibStub")
 

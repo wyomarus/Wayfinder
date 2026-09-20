@@ -1,6 +1,6 @@
 -- CompassBanner manages the frame and elements of the compass banner.
 
-local addonName, addon = ...
+local _, addon = ...
 local _p = addon.private
 local api = addon.API
 local _C = addon.Constants

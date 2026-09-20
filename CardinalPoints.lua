@@ -1,6 +1,6 @@
 -- CardinalPoints manages the cardinal points on the compass banner.
 
-local addonName, addon = ...
+local _, addon = ...
 local api = addon.API
 
 local cardinalDirections = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
