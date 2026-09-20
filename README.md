@@ -2,6 +2,8 @@
 
 Welcome to Wayfinder, an addon for World of Warcraft that enhances your navigation experience with a compass banner.
 
+![Wayfinder tracking a quest, with the compass banner, marker, distance, and ETA all visible](Media/Screenshot.png)
+
 ## Table of Contents
 
 - [Wayfinder](#wayfinder)
