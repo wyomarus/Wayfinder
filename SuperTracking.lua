@@ -263,9 +263,14 @@ end
 
 local isSticky = true
 
-api.AddElementToBanner(
+local superTrackingElement = api.AddElementToBanner(
     "SuperTracking",
     superTrackingCallback,
     createSuperTrackingMarker,
     isSticky
 )
+
+addon.SuperTracking = {
+    Enable = function() api.SetElementEnabled(superTrackingElement, true) end,
+    Disable = function() api.SetElementEnabled(superTrackingElement, false) end,
+}

@@ -32,6 +32,7 @@ local elements = {}
 --- @param angleFunction function A function that returns the angle of the element relative to the player.
 --- @param createBannerMarker function A function that creates the UI element for the element on the compass banner.
 --- @param isMarkerSticky boolean Whether the marker should be sticky or not.
+--- @return table element A handle for the added element, usable with api.SetElementEnabled.
 local function addElementToBanner(name, angleFunction, createBannerMarker, isMarkerSticky)
     assert(type(name) == "string", "Expected name to be a string")
     assert(type(angleFunction) == "function", "Expected angleFunction to be a function")
@@ -42,13 +43,30 @@ local function addElementToBanner(name, angleFunction, createBannerMarker, isMar
         name = name,
         angleFunction = angleFunction,
         uiElement = uiElement,
-        isSticky = isMarkerSticky or false
+        isSticky = isMarkerSticky or false,
+        enabled = true
     }
 
     table.insert(elements, element)
+
+    return element
 end
 
 api.AddElementToBanner = addElementToBanner
+
+--- Enable or disable a previously added element, hiding it immediately when disabled.
+--- @param element table An element handle returned by api.AddElementToBanner.
+--- @param enabled boolean Whether the element should be processed and shown.
+local function setElementEnabled(element, enabled)
+    assert(type(element) == "table", "Expected element to be a table")
+
+    element.enabled = enabled
+    if not enabled then
+        element.uiElement:Hide()
+    end
+end
+
+api.SetElementEnabled = setElementEnabled
 
 -- Create the frame for the compass banner
 local function buildCompassBannerFrame()
@@ -135,6 +153,7 @@ end
 
 local function processElement(element)
     if not element then return end
+    if not element.enabled then return end
 
     playerFacing = GetPlayerFacing() -- could also check if player is in an instance
     if not playerFacing then return end
