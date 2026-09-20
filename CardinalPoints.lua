@@ -3,6 +3,7 @@
 
 local _, addon = ...
 local api = addon.API
+local _C = addon.Constants
 
 -- Known WoW: Forever beta bug: SavedVariables are written to disk correctly but not
 -- reliably read back on /reload or client restart (confirmed independently of this
@@ -13,7 +14,17 @@ local api = addon.API
 -- Defaulting to the highest level in the meantime so a reset is the most useful outcome.
 WayfinderSettings = WayfinderSettings or {}
 
-local DEFAULT_DETAIL = 3
+--- The tiers of compass detail, each one showing everything the previous tier does plus
+--- more. Published on addon.Constants since Slash.lua's input validation needs it too.
+_C.CompassDetail = {
+    None = 0,
+    Cardinals = 1,
+    Intercardinals = 2,
+    Pips = 3,
+}
+local DetailLevel = _C.CompassDetail
+
+local DEFAULT_DETAIL = DetailLevel.Pips
 
 local cardinalDirections = {
     { name = "N", angle = 0 },
@@ -104,15 +115,14 @@ for angle = 0, 345, 15 do
     end
 end
 
---- Render a detail level (0-3) without changing the remembered preference: 0 hides
---- everything, 1 shows only N/E/S/W, 2 adds the intercardinal directions, 3 adds a tick
---- every 15 degrees.
---- @param level number
+--- Render a detail level without changing the remembered preference. Each tier shows
+--- everything the one below it does, plus more.
+--- @param level number One of the DetailLevel values.
 local function applyDetail(level)
-    setElementsEnabled(cardinalElements, level >= 1)
-    setElementsEnabled(intercardinalElements, level >= 2)
-    setElementsEnabled(pipElements, level >= 3)
-    api.SetCenterLineShown(level >= 1)
+    setElementsEnabled(cardinalElements, level >= DetailLevel.Cardinals)
+    setElementsEnabled(intercardinalElements, level >= DetailLevel.Intercardinals)
+    setElementsEnabled(pipElements, level >= DetailLevel.Pips)
+    api.SetCenterLineShown(level >= DetailLevel.Cardinals)
 end
 
 --- Set the user's preferred detail level: applies it now and remembers it for Show().
@@ -124,7 +134,7 @@ end
 
 api.CardinalPoints = {
     Show = function() applyDetail(WayfinderSettings.compassDetail or DEFAULT_DETAIL) end,
-    Hide = function() applyDetail(0) end,
+    Hide = function() applyDetail(DetailLevel.None) end,
     SetDetail = setDetail,
     GetDetail = function() return WayfinderSettings.compassDetail end,
 }

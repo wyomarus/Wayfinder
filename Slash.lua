@@ -3,6 +3,7 @@
 local _, addon = ...
 local _p = addon.private
 local api = addon.API
+local _C = addon.Constants
 
 local print = print
 
@@ -51,8 +52,9 @@ local function DisableTrackingDistance()
 end
 
 local function SetCompassDetail(arg)
+    local DetailLevel = _C.CompassDetail
     local level = tonumber(arg)
-    if not level or level < 0 or level > 3 or level % 1 ~= 0 then
+    if not level or level < DetailLevel.None or level > DetailLevel.Pips or level % 1 ~= 0 then
         print("Usage: /wayfinder detail <0-3>")
         print(" 0 - hide compass detail entirely")
         print(" 1 - cardinal directions only (N, E, S, W)")
