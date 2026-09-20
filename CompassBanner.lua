@@ -42,6 +42,7 @@ local function addElementToBanner(name, angleFunction, createBannerMarker, isMar
         angleFunction = angleFunction,
         uiElement = uiElement,
         isSticky = isMarkerSticky or false,
+        rotateWhenSticky = true,
         enabled = true
     }
 
@@ -51,6 +52,22 @@ local function addElementToBanner(name, angleFunction, createBannerMarker, isMar
 end
 
 api.AddElementToBanner = addElementToBanner
+
+--- Set whether a sticky element rotates to point sideways when pinned at the compass
+--- edge (appropriate for a directional icon like an arrow, not for one without an
+--- inherent direction like a tombstone). Only matters for elements marked sticky.
+--- @param element table An element handle returned by api.AddElementToBanner.
+--- @param rotateWhenSticky boolean
+local function setElementRotateWhenSticky(element, rotateWhenSticky)
+    assert(type(element) == "table", "Expected element to be a table")
+
+    element.rotateWhenSticky = rotateWhenSticky
+    if not rotateWhenSticky and element.uiElement then
+        element.uiElement:SetRotation(0)
+    end
+end
+
+api.SetElementRotateWhenSticky = setElementRotateWhenSticky
 
 --- Enable or disable a previously added element, hiding it immediately when disabled.
 --- @param element table An element handle returned by api.AddElementToBanner.
@@ -137,8 +154,9 @@ local function calculateBannerPosition(relativeAngle, isSticky, element)
         end
         return (relativeAngle / HALF_FOV) * HALF_BANNER_WIDTH
     elseif isSticky then
-        -- Rotate the marker 90 degrees when out of the field of view
-        if element.uiElement then
+        -- Rotate the marker 90 degrees when out of the field of view, unless it's been
+        -- marked as not having an inherent direction (e.g. a tombstone, vs. an arrow).
+        if element.uiElement and element.rotateWhenSticky then
             element.uiElement:SetRotation(rad(relativeAngle < 0 and 90 or -90))
         end
         return relativeAngle < 0 and -HALF_BANNER_WIDTH or HALF_BANNER_WIDTH

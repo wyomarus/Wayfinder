@@ -29,6 +29,7 @@ globals = {
     "C_AreaPoiInfo",
     "C_TaxiMap",
     "C_Navigation",
+    "C_DeathInfo",
     "AbbreviateNumbers",
     "IN_GAME_NAVIGATION_RANGE",
 
