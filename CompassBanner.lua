@@ -125,8 +125,7 @@ end
 api.SetCenterLineShown = setCenterLineShown
 
 -- Known WoW: Forever beta bug affecting SavedVariables persistence in general - see
--- CardinalPoints.lua's compassDetail comment for details.
-WayfinderSettings = WayfinderSettings or {}
+-- Wayfinder.lua for details.
 
 --- Remember the banner's current position so it can be restored on the next load.
 local function saveBannerPosition()

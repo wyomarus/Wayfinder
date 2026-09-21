@@ -233,25 +233,10 @@ local superTrackingETAText = nil
 local superTrackingIconAtlas = nil
 
 -- Known WoW: Forever beta bug affecting SavedVariables persistence in general - see
--- CardinalPoints.lua's compassDetail comment for details.
-WayfinderSettings = WayfinderSettings or {}
-local showTrackingDistance = WayfinderSettings.showTrackingDistance
-if showTrackingDistance == nil then
-    showTrackingDistance = true
-end
-WayfinderSettings.showTrackingDistance = showTrackingDistance
-
-local showTrackingETA = WayfinderSettings.showTrackingETA
-if showTrackingETA == nil then
-    showTrackingETA = true
-end
-WayfinderSettings.showTrackingETA = showTrackingETA
-
-local trackingEnabled = WayfinderSettings.trackingEnabled
-if trackingEnabled == nil then
-    trackingEnabled = true
-end
-WayfinderSettings.trackingEnabled = trackingEnabled
+-- Wayfinder.lua for details.
+local showTrackingDistance = _p.getOrSetDefault("showTrackingDistance", true)
+local showTrackingETA = _p.getOrSetDefault("showTrackingETA", true)
+local trackingEnabled = _p.getOrSetDefault("trackingEnabled", true)
 
 --- Apply the live SuperTracking icon to our marker. Retries each update until
 --- SuperTrackedFrame is available (starting SuperTracking is what creates it), and

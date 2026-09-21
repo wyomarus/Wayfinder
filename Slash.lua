@@ -37,22 +37,22 @@ local function OpenSettings()
 end
 
 local function EnableCardinalPoints()
-    api.CardinalPoints:Show()
+    api.CardinalPoints.Show()
     print("CardinalPoints enabled.")
 end
 
 local function DisableCardinalPoints()
-    api.CardinalPoints:Hide()
+    api.CardinalPoints.Hide()
     print("CardinalPoints disabled.")
 end
 
 local function EnableSuperTracking()
-    api.SuperTracking:Enable()
+    api.SuperTracking.Enable()
     print("SuperTracking enabled.")
 end
 
 local function DisableSuperTracking()
-    api.SuperTracking:Disable()
+    api.SuperTracking.Disable()
     print("SuperTracking disabled.")
 end
 
