@@ -26,6 +26,30 @@ local _p = addon.private
 
 assert(LibStub, addonName .. " requires LibStub")
 
+-- Known WoW: Forever beta bug: SavedVariables are written to disk correctly but not
+-- reliably read back on /reload or client restart (confirmed independently of this
+-- addon: https://github.com/ClassicWoWCommunity/forever-bugs/issues/34). Wayfinder.toc's
+-- LoadSavedVariablesFirst is the objectively correct setting for this and the code below
+-- is otherwise standard, but neither can work around the underlying client bug - values
+-- read here may silently revert to their defaults every reload until Blizzard fixes it.
+WayfinderSettings = WayfinderSettings or {}
+
+--- Read a value from WayfinderSettings, applying and persisting the given default the
+--- first time it's seen (i.e. when the key is nil). Centralizes the "read with a
+--- default, write it back" pattern every module's persisted settings use.
+--- @param key string The field name in WayfinderSettings.
+--- @param default any
+--- @return any value
+local function getOrSetDefault(key, default)
+    local value = WayfinderSettings[key]
+    if value == nil then
+        value = default
+        WayfinderSettings[key] = default
+    end
+    return value
+end
+_p.getOrSetDefault = getOrSetDefault
+
 -- Cache global references
 local print = print
 local format = string.format

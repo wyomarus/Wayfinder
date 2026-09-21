@@ -2,17 +2,13 @@
 -- on the compass banner, and the user's chosen level of detail for them.
 
 local _, addon = ...
+local _p = addon.private
 local api = addon.API
 local _C = addon.Constants
 
--- Known WoW: Forever beta bug: SavedVariables are written to disk correctly but not
--- reliably read back on /reload or client restart (confirmed independently of this
--- addon: https://github.com/ClassicWoWCommunity/forever-bugs/issues/34). Wayfinder.toc's
--- LoadSavedVariablesFirst is the objectively correct setting for this and the code below
--- is otherwise standard, but neither can work around the underlying client bug - until
--- Blizzard fixes it, compassDetail may silently revert to DEFAULT_DETAIL every reload.
--- Defaulting to the highest level in the meantime so a reset is the most useful outcome.
-WayfinderSettings = WayfinderSettings or {}
+-- Known WoW: Forever beta bug affecting SavedVariables persistence in general - see
+-- Wayfinder.lua for details. Defaulting to the highest detail level in the meantime so
+-- a reset (the most likely failure mode) is the most useful outcome.
 
 --- The tiers of compass detail, each one showing everything the previous tier does plus
 --- more. Published on addon.Constants since Slash.lua's input validation needs it too.
@@ -137,10 +133,10 @@ local function setDetail(level)
 end
 
 api.CardinalPoints = {
-    Show = function() applyDetail(WayfinderSettings.compassDetail or DEFAULT_DETAIL) end,
+    Show = function() applyDetail(_p.getOrSetDefault("compassDetail", DEFAULT_DETAIL)) end,
     Hide = function() applyDetail(DetailLevel.None) end,
     SetDetail = setDetail,
     GetDetail = function() return WayfinderSettings.compassDetail end,
 }
 
-setDetail(WayfinderSettings.compassDetail or DEFAULT_DETAIL)
+setDetail(_p.getOrSetDefault("compassDetail", DEFAULT_DETAIL))
