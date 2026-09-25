@@ -6,10 +6,6 @@ local _p = addon.private
 local api = addon.API
 local _C = addon.Constants
 
--- Known WoW: Forever beta bug affecting SavedVariables persistence in general - see
--- Wayfinder.lua for details. Defaulting to the highest detail level in the meantime so
--- a reset (the most likely failure mode) is the most useful outcome.
-
 --- The tiers of compass detail, each one showing everything the previous tier does plus
 --- more. Published on addon.Constants since Slash.lua's input validation needs it too.
 _C.CompassDetail = {

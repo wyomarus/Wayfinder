@@ -232,8 +232,6 @@ local superTrackingDistanceText = nil
 local superTrackingETAText = nil
 local superTrackingIconAtlas = nil
 
--- Known WoW: Forever beta bug affecting SavedVariables persistence in general - see
--- Wayfinder.lua for details.
 local showTrackingDistance = _p.getOrSetDefault("showTrackingDistance", true)
 local showTrackingETA = _p.getOrSetDefault("showTrackingETA", true)
 local trackingEnabled = _p.getOrSetDefault("trackingEnabled", true)

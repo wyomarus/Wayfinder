@@ -1,5 +1,10 @@
 # Release Notes
 
+## [1.0.0-beta.2] - 2026-09-24
+### Changed
+- Docs/comment cleanup: removed the SavedVariables-bug notes from code comments, `Wayfinder.toc`, and DEVNOTES.md now that it's fixed upstream (Forever beta build 70009) - see 1.0.0-beta.1's "Known issues" below for the original context.
+- Packaging: verifies the WoWInterface publish target added after 1.0.0-beta.1 (`X-WoWI-ID`) publishes correctly via the automated packager, ahead of the next stable release.
+
 ## [1.0.0-beta.1] - 2026-09-20
 ### Added
 - Interface support for World of Warcraft: Forever (1.60.1, interface 16001), alongside current retail (12.1.0, interface 120100).

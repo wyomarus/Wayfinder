@@ -12,8 +12,6 @@
 ## AddonCompartmentFuncOnLeave: Wayfinder_OnAddonCompartmentLeave
 ## SavedVariables: WayfinderDebug, WayfinderSettings
 ## LoadSavedVariablesFirst: 1
-# LoadSavedVariablesFirst is correct but doesn't fully help yet - known Forever beta bug,
-# SavedVariables aren't reliably read back on reload/restart: see CardinalPoints.lua.
 
 Libs\embeds.xml
 

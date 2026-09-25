@@ -13,11 +13,10 @@ Coding conventions and operational notes for contributors, kept separate from [H
 
 ## Known issues
 
-- **WoW: Forever beta - SavedVariables not reliably read back.** Confirmed independently of this addon: https://github.com/ClassicWoWCommunity/forever-bugs/issues/34. `Wayfinder.toc`'s `LoadSavedVariablesFirst` is the correct mitigation, but it can't fully work around the underlying client bug - any `WayfinderSettings` value (compass detail, distance/ETA visibility, banner position) may silently revert on reload until Blizzard fixes it. See the comments in [CardinalPoints.lua](CardinalPoints.lua), [SuperTracking.lua](SuperTracking.lua), and [CompassBanner.lua](CompassBanner.lua).
 - **WoW 12.0+ secret values.** Combat-related APIs (e.g. `GetUnitSpeed`) can return an opaque "secret" value while in combat, part of Blizzard's addon-disarmament system - arithmetic, comparison, and even `tostring()`/`print()` on one throws under tainted execution. Check `issecretvalue(value)` before touching a value from any such API and degrade gracefully (see `updateSuperTrackingReadout` and `debugSuperTracking` in [SuperTracking.lua](SuperTracking.lua)) rather than assuming a plain number.
 
 ## Reference
 
-- **CI.** GitHub Actions (`.github/workflows/ci.yml`) runs `BigWigsMods/luacheck` (config in `.luacheckrc`) on every push and PR, and packages + publishes to CurseForge/Wago via `BigWigsMods/packager` on tag pushes.
+- **CI.** GitHub Actions (`.github/workflows/ci.yml`) runs `BigWigsMods/luacheck` (config in `.luacheckrc`) on every push and PR, and packages + publishes to CurseForge/Wago/WoWInterface via `BigWigsMods/packager` on tag pushes.
 - **Third-party libraries.** Everything under `Libs/` (LibStub, CallbackHandler-1.0, HereBeDragons-2.0) is pulled in by `.pkgmeta` from its upstream repo - don't hand-edit it; update the pin in `.pkgmeta` instead.
 - **Interop with other addons.** Wayfinder tracks `Enum.SuperTrackingType.UserWaypoint`, so any addon that sets one through Blizzard's standard `C_Map.SetUserWaypoint()` + `C_SuperTrack.SetSuperTrackedUserWaypoint(true)` - not just the map's right-click menu - shows up on the compass automatically, with no Wayfinder-specific integration on either side. Not yet confirmed that any specific popular addon actually uses this path (e.g. RareScanner integrates with TomTom instead, which is a separate, undocumented mechanism - see its own waypoint table on the global `TomTom` object if that's ever worth reading directly).
