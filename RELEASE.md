@@ -1,5 +1,9 @@
 # Release Notes
 
+## [1.0.0] - 2026-09-24
+### Changed
+- Promoted from beta to a stable release. No functional changes since 1.0.0-beta.2 - the only blocker was the WoW: Forever beta's SavedVariables-not-read-back bug (see 1.0.0-beta.1's "Known issues" below). Blizzard has since fixed it upstream (Forever beta build 70009), it's been verified in-game against Wayfinder's own settings, and 1.0.0-beta.2 confirmed the automated release pipeline (CurseForge, Wago, and WoWInterface) publishes cleanly.
+
 ## [1.0.0-beta.2] - 2026-09-24
 ### Changed
 - Docs/comment cleanup: removed the SavedVariables-bug notes from code comments, `Wayfinder.toc`, and DEVNOTES.md now that it's fixed upstream (Forever beta build 70009) - see 1.0.0-beta.1's "Known issues" below for the original context.
