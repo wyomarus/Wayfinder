@@ -124,9 +124,6 @@ end
 
 api.SetCenterLineShown = setCenterLineShown
 
--- Known WoW: Forever beta bug affecting SavedVariables persistence in general - see
--- Wayfinder.lua for details.
-
 --- Remember the banner's current position so it can be restored on the next load.
 local function saveBannerPosition()
     local point, _, relativePoint, xOfs, yOfs = addon.CompassBannerFrame:GetPoint()
