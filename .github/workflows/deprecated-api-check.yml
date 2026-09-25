@@ -1,0 +1,57 @@
+name: Deprecated API Check (experimental)
+
+# Manually triggered only, on purpose - not wired into push/PR triggers yet.
+# Runs lua-language-server against Ketho's WoW API annotations (the same
+# tool/data r/wowaddons' audit uses) and fails only if it reports actual
+# @deprecated API usage. Every other diagnostic category (undefined-global,
+# undefined-field, need-check-nil, etc.) is noise from this repo's annotation
+# coverage being incomplete, not real problems - see DEVNOTES.md if this
+# graduates to running automatically.
+on:
+  workflow_dispatch:
+
+env:
+  LUALS_VERSION: "3.19.1"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download lua-language-server
+        run: |
+          curl -sL -o lls.tar.gz "https://github.com/LuaLS/lua-language-server/releases/download/${LUALS_VERSION}/lua-language-server-${LUALS_VERSION}-linux-x64.tar.gz"
+          mkdir -p lua-language-server
+          tar -xzf lls.tar.gz -C lua-language-server
+
+      - name: Clone Ketho's WoW API annotations
+        run: git clone --depth 1 https://github.com/Ketho/vscode-wow-api.git wow-api-annotations
+
+      - name: Prepare check workspace
+        run: |
+          mkdir -p wf-check
+          cp *.lua wf-check/
+          cat > wf-check/.luarc.json <<'EOF'
+          {
+            "runtime.version": "Lua 5.1",
+            "workspace.library": [
+              "../wow-api-annotations/Annotations/Core",
+              "../wow-api-annotations/Annotations/FrameXML"
+            ],
+            "diagnostics.globals": ["WayfinderSettings", "WayfinderDebug"]
+          }
+          EOF
+
+      - name: Run deprecated-API check
+        run: |
+          set +e
+          ./lua-language-server/bin/lua-language-server --check=wf-check --checklevel=Warning > report.txt 2>&1
+          echo "===== full diagnostic report ====="
+          cat report.txt
+          echo "==================================="
+          if grep -q '(deprecated)' report.txt; then
+            echo "::error::Deprecated WoW API usage detected - see report above"
+            exit 1
+          fi
+          echo "No deprecated API usage detected."
