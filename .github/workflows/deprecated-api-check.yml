@@ -1,21 +1,15 @@
-name: Deprecated API Check (experimental)
+name: Deprecated API Check (manual)
 
-# Experimental - deliberately NOT wired into ci.yml's push/PR triggers yet.
+# Deliberately manual-only, not wired into ci.yml's push/PR triggers. Run
+# this from the Actions tab before tagging a release, alongside the usual
+# in-game verification - see DEVNOTES.md's Known issues / Reference section.
+#
 # Runs lua-language-server against Ketho's WoW API annotations (the same
 # tool/data r/wowaddons' audit uses) and fails only if it reports actual
 # @deprecated API usage. Every other diagnostic category (undefined-global,
 # undefined-field, need-check-nil, etc.) is noise from this repo's annotation
-# coverage being incomplete, not real problems - see DEVNOTES.md if this
-# graduates to running automatically.
-#
-# Triggers on push to this branch only (GitHub requires workflow_dispatch to
-# exist on the default branch before it's dispatchable via CLI/API, which
-# would defeat the point of keeping this off main during evaluation) - keep
-# both triggers scoped to this branch name until this is ready to graduate.
+# coverage being incomplete, not real problems.
 on:
-  push:
-    branches:
-      - ci/deprecated-api-check
   workflow_dispatch:
 
 env:
