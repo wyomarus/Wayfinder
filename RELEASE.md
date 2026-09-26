@@ -1,5 +1,13 @@
 # Release Notes
 
+## [1.0.1] - 2026-09-26
+### Fixed
+- Changing Nameplate Style (Options > Nameplates) could throw a Lua error every frame while the preview cast bar animated. Wayfinder's options page was built from Blizzard's shared Settings controls, and that left Wayfinder's "taint" on control frames Blizzard later reused for its own settings. Thanks to u/xJayoftheDeadx on Reddit for the detailed report and suggested fix.
+
+### Changed
+- The options page is now a single page built from Wayfinder's own controls. The About info (icon, version, author) is at the top, and there's no separate About page anymore.
+- Compass detail is now a set of radio buttons instead of a dropdown.
+
 ## [1.0.0] - 2026-09-24
 ### Changed
 - Promoted from beta to a stable release. No functional changes since 1.0.0-beta.2 - the only blocker was the WoW: Forever beta's SavedVariables-not-read-back bug (see 1.0.0-beta.1's "Known issues" below). Blizzard has since fixed it upstream (Forever beta build 70009), it's been verified in-game against Wayfinder's own settings, and 1.0.0-beta.2 confirmed the automated release pipeline (CurseForge, Wago, and WoWInterface) publishes cleanly.
