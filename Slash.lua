@@ -96,6 +96,16 @@ local function SetCompassDetail(arg)
     print("Compass detail set to " .. level .. ".")
 end
 
+local function ShowCenterLine()
+    api.CompassBanner.SetCenterLineHidden(false)
+    print("Center line shown. (Experimental: this command may change or be removed.)")
+end
+
+local function HideCenterLine()
+    api.CompassBanner.SetCenterLineHidden(true)
+    print("Center line hidden. (Experimental: this command may change or be removed.)")
+end
+
 local function PrintUsage()
     print("Usage:")
     print("/wayfinder show - Show the compass banner")
@@ -106,6 +116,7 @@ local function PrintUsage()
     print("/wayfinder settings - Open the Wayfinder settings panel")
     print("/wayfinder compass enable|disable - Enable or disable the CardinalPoints")
     print("/wayfinder detail <0-3> - Set how much compass detail is shown")
+    print("/wayfinder centerline show|hide - (Experimental) Show or hide the center line")
     print("/wayfinder tracking enable|disable - Enable or disable SuperTracking")
     print("/wayfinder distance enable|disable - Show or hide the SuperTracking distance readout")
     print("/wayfinder eta enable|disable - Show or hide the SuperTracking ETA readout")
@@ -124,6 +135,10 @@ local commandHandlers = {
         disable = DisableCardinalPoints,
     },
     detail = SetCompassDetail,
+    centerline = {
+        show = ShowCenterLine,
+        hide = HideCenterLine,
+    },
     tracking = {
         enable = EnableSuperTracking,
         disable = DisableSuperTracking,

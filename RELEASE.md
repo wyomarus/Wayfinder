@@ -1,5 +1,9 @@
 # Release Notes
 
+## [Unreleased]
+### Added
+- Experimental `/wayfinder centerline show|hide` command to hide the compass banner's center line, remembered between sessions. Requested on CurseForge; deliberately slash-command-only for now (not in the Settings panel) while we see whether it's worth becoming a real feature.
+
 ## [1.0.1] - 2026-09-26
 ### Fixed
 - Changing Nameplate Style (Options > Nameplates) could throw a Lua error every frame while the preview cast bar animated. Wayfinder's options page was built from Blizzard's shared Settings controls, and that left Wayfinder's "taint" on control frames Blizzard later reused for its own settings. Thanks to u/xJayoftheDeadx on Reddit for the detailed report and suggested fix.

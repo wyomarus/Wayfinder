@@ -112,17 +112,32 @@ end
 
 addon.CompassBannerFrame = addon.CompassBannerFrame or buildCompassBannerFrame()
 
---- Show or hide the center "straight ahead" line independently of the banner itself.
+-- The center line is shown only when the compass detail level calls for it AND the user
+-- hasn't opted to hide it (an experimental preference, see api.CompassBanner.SetCenterLineHidden).
+local centerLineWantedByDetail = true
+local centerLineHiddenByUser = WayfinderSettings.centerLineHidden == true
+
+local function updateCenterLine()
+    addon.CompassBannerFrame.centerLine:SetShown(centerLineWantedByDetail and not centerLineHiddenByUser)
+end
+
+--- Show or hide the center "straight ahead" line independently of the banner itself, as
+--- driven by the compass detail level. The user's own hide preference still takes priority.
 --- @param shown boolean
 local function setCenterLineShown(shown)
-    if shown then
-        addon.CompassBannerFrame.centerLine:Show()
-    else
-        addon.CompassBannerFrame.centerLine:Hide()
-    end
+    centerLineWantedByDetail = shown
+    updateCenterLine()
 end
 
 api.SetCenterLineShown = setCenterLineShown
+
+--- Set and remember the user's preference to hide the center line, regardless of detail level.
+--- @param hidden boolean
+local function setCenterLineHidden(hidden)
+    centerLineHiddenByUser = hidden
+    WayfinderSettings.centerLineHidden = hidden or nil
+    updateCenterLine()
+end
 
 --- Remember the banner's current position so it can be restored on the next load.
 local function saveBannerPosition()
@@ -193,6 +208,7 @@ api.CompassBanner = {
     IsLocked = function() return bannerLocked end,
     ResetPosition = resetBannerPosition,
     IsShown = function() return addon.CompassBannerFrame:IsShown() end,
+    SetCenterLineHidden = setCenterLineHidden,
 }
 
 local function asDegrees(radians)
