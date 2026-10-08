@@ -18,6 +18,7 @@ globals = {
     -- WoW
     "CreateFrame",
     "GetPlayerFacing",
+    "GetTime",
     "GetUnitSpeed",
     "issecretvalue",
     "Settings",

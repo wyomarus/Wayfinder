@@ -30,6 +30,7 @@ local bind = _p.bind
 -- Cache global references
 local deg = math.deg
 local print = print
+local GetTime = GetTime
 local GetUnitSpeed = GetUnitSpeed
 local issecretvalue = issecretvalue
 
@@ -128,7 +129,7 @@ local function superTrackingCallback()
         return
     end
 
-    updateSuperTrackingReadout(distance, GetUnitSpeed("player"))
+    updateSuperTrackingReadout(distance)
 
     return 360 - deg(angle)
 end
@@ -331,22 +332,62 @@ local function formatETA(seconds)
     return math.floor(seconds / 60) .. "m " .. (seconds % 60) .. "s"
 end
 
+-- The ETA comes from how quickly the distance to the target is shrinking, sampled a few times
+-- a second and smoothed, not from the player's movement speed. GetUnitSpeed reports 0 as the
+-- current speed while flying, can't tell moving toward the target from moving away, and can
+-- be a "secret" value in combat (WoW 12.0+'s addon disarmament system), which arithmetic on
+-- throws. Distance can be read in every situation, so this works the same on foot, on a
+-- mount, while flying or Skyriding, and on a taxi.
+local ETA_SAMPLE_INTERVAL = 0.25 -- seconds between distance samples
+local ETA_SMOOTHING = 0.3 -- how much of the way each new sample moves the estimate
+local ETA_RESTART_AFTER = 1.5 -- seconds without a sample before starting over
+local ETA_MIN_CLOSING_SPEED = 0.5 -- yards per second below which the player counts as not approaching
+
+local lastSampleDistance, lastSampleTime, closingSpeed
+
+--- Take another distance sample, if it's time, and update how fast the player is closing in
+--- on the target, or nil if they aren't. Forgets everything while there's no target.
+--- @param distance number|nil Distance to the super-tracked target, in yards.
+local function updateClosingSpeed(distance)
+    if not distance then
+        lastSampleDistance, lastSampleTime, closingSpeed = nil, nil, nil
+        return
+    end
+
+    local now = GetTime()
+    if not lastSampleTime or now - lastSampleTime > ETA_RESTART_AFTER then
+        lastSampleDistance, lastSampleTime, closingSpeed = distance, now, nil
+        return
+    end
+
+    local elapsed = now - lastSampleTime
+    if elapsed < ETA_SAMPLE_INTERVAL then return end
+
+    -- Stopping, or moving away, is shown at once. Smoothing it would let the estimate drift
+    -- down toward zero over several seconds, and the ETA would climb all the while.
+    local sample = (lastSampleDistance - distance) / elapsed
+    if sample <= ETA_MIN_CLOSING_SPEED then
+        closingSpeed = nil
+    else
+        closingSpeed = closingSpeed and (closingSpeed + ETA_SMOOTHING * (sample - closingSpeed)) or sample
+    end
+    lastSampleDistance, lastSampleTime = distance, now
+end
+
 --- Show the distance and/or ETA to the super-tracked target below the marker (ETA below
 --- distance), or hide each independently when there's nothing to show or its readout is
 --- turned off. Distance uses Blizzard's own localized IN_GAME_NAVIGATION_RANGE string
 --- (the same one SuperTrackedFrame uses) rather than a hardcoded unit suffix, since the
---- label isn't the same in every locale. ETA is a straight-line estimate from the
---- player's current raw movement speed (GetUnitSpeed), so it assumes travel directly
---- toward the target at a constant speed - it'll be jumpy while turning/stopping and
---- wrong while moving away from the target. GetUnitSpeed can also return a "secret"
---- value while in combat (WoW 12.0+'s addon disarmament system) - arithmetic or
---- comparison on a secret value throws, so it's treated the same as no usable speed.
---- Whenever ETA is enabled and there's a target, the line always shows something ("--"
---- when there's no usable speed) rather than appearing/disappearing, so toggling the
---- setting or standing still both read clearly instead of looking like nothing happened.
+--- label isn't the same in every locale. ETA is a straight-line estimate from how fast the
+--- player is closing in on the target (see updateClosingSpeed), so it's jumpy while turning
+--- and shows "--" as soon as the player stops or moves away. Whenever ETA is enabled and there's
+--- a target, the line always shows something ("--" when there's no usable speed yet) rather
+--- than appearing/disappearing, so toggling the setting or standing still both read clearly
+--- instead of looking like nothing happened.
 --- @param distance number|nil Distance to the super-tracked target, in yards.
---- @param speed number|nil The player's current movement speed, in yards per second.
-updateSuperTrackingReadout = function(distance, speed)
+updateSuperTrackingReadout = function(distance)
+    updateClosingSpeed(distance)
+
     if distance and showTrackingDistance then
         superTrackingDistanceText:SetText(IN_GAME_NAVIGATION_RANGE:format(formatDistance(distance)))
         superTrackingDistanceText:Show()
@@ -355,8 +396,8 @@ updateSuperTrackingReadout = function(distance, speed)
     end
 
     if distance and showTrackingETA then
-        if speed and not issecretvalue(speed) and speed > 0.01 then
-            superTrackingETAText:SetText(formatETA(distance / speed))
+        if closingSpeed then
+            superTrackingETAText:SetText(formatETA(distance / closingSpeed))
         else
             superTrackingETAText:SetText("--")
         end
@@ -402,6 +443,7 @@ local function debugSuperTracking()
     -- checked before printing rather than passed straight to out()/print().
     local speed = GetUnitSpeed("player")
     out(" GetUnitSpeed(player):", issecretvalue(speed) and "<secret>" or speed)
+    out(" closing speed on the target (yards/second):", closingSpeed)
 
     local map = GetBestMapForUnit("player")
     out(" GetBestMapForUnit:", map)
