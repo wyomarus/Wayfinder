@@ -117,6 +117,7 @@ function panel.OnDefault()
     _p.enableCompassBanner()
     api.CompassBanner.Lock()
     api.CardinalPoints.SetDetail(DetailLevel.Pips)
+    api.CompassBanner.SetShowCenterLine(true)
     api.SuperTracking.Enable()
     api.SuperTracking.SetShowDistance(true)
     api.SuperTracking.SetShowETA(true)
@@ -476,6 +477,12 @@ createStepper("Compass detail", {
     { value = DetailLevel.Intercardinals, label = "Intercardinals", tooltip = "Cardinal and intercardinal directions." },
     { value = DetailLevel.Pips, label = "Pips", tooltip = "Cardinal, intercardinal, and a tick every 15 degrees." },
 }, api.CardinalPoints.GetDetail, api.CardinalPoints.SetDetail, api.CompassBanner.IsShown)
+
+createCheckbox(
+    "Show center line", "Show the line at the middle of the banner marking the direction you're facing. Not shown when compass detail is None.",
+    api.CompassBanner.GetShowCenterLine, api.CompassBanner.SetShowCenterLine,
+    function() return api.CompassBanner.IsShown() and api.CardinalPoints.GetDetail() ~= DetailLevel.None end
+)
 
 -- SuperTracking
 
