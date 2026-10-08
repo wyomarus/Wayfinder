@@ -122,6 +122,20 @@ local function SetBannerBackground(arg)
     print("Banner background set to " .. level .. ".")
 end
 
+--- Wrap a SuperTracking command so that on a client without SuperTracking (Classic Era,
+--- for example) it says so instead of doing nothing.
+--- @param handler function
+--- @return function
+local function whenSuperTrackingSupported(handler)
+    return function(...)
+        if not api.SuperTracking.IsSupported() then
+            print("SuperTracking isn't available on this client.")
+            return
+        end
+        handler(...)
+    end
+end
+
 local function PrintUsage()
     print("Usage:")
     print("/wayfinder show - Show the compass banner")
@@ -134,10 +148,12 @@ local function PrintUsage()
     print("/wayfinder detail <0-3> - Set how much compass detail is shown")
     print("/wayfinder centerline enable|disable - Show or hide the line at the center of the banner")
     print("/wayfinder background <0-3> - Set the strength of the dark fade behind the banner")
-    print("/wayfinder tracking enable|disable - Enable or disable SuperTracking")
-    print("/wayfinder distance enable|disable - Show or hide the SuperTracking distance readout")
-    print("/wayfinder eta enable|disable - Show or hide the SuperTracking ETA readout")
-    print("/wayfinder debug tracking - Print SuperTracking diagnostic info")
+    if api.SuperTracking.IsSupported() then
+        print("/wayfinder tracking enable|disable - Enable or disable SuperTracking")
+        print("/wayfinder distance enable|disable - Show or hide the SuperTracking distance readout")
+        print("/wayfinder eta enable|disable - Show or hide the SuperTracking ETA readout")
+        print("/wayfinder debug tracking - Print SuperTracking diagnostic info")
+    end
 end
 
 local commandHandlers = {
@@ -158,19 +174,19 @@ local commandHandlers = {
     },
     background = SetBannerBackground,
     tracking = {
-        enable = EnableSuperTracking,
-        disable = DisableSuperTracking,
+        enable = whenSuperTrackingSupported(EnableSuperTracking),
+        disable = whenSuperTrackingSupported(DisableSuperTracking),
     },
     distance = {
-        enable = EnableTrackingDistance,
-        disable = DisableTrackingDistance,
+        enable = whenSuperTrackingSupported(EnableTrackingDistance),
+        disable = whenSuperTrackingSupported(DisableTrackingDistance),
     },
     eta = {
-        enable = EnableTrackingETA,
-        disable = DisableTrackingETA,
+        enable = whenSuperTrackingSupported(EnableTrackingETA),
+        disable = whenSuperTrackingSupported(DisableTrackingETA),
     },
     debug = {
-        tracking = DebugSuperTracking,
+        tracking = whenSuperTrackingSupported(DebugSuperTracking),
     },
 }
 

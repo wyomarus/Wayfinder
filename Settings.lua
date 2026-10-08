@@ -493,29 +493,31 @@ createCheckbox(
     function() return api.CompassBanner.IsShown() and api.CardinalPoints.GetDetail() ~= DetailLevel.None end
 )
 
--- SuperTracking
+-- SuperTracking, on clients that have it (not Classic Era, for example)
 
-createSectionHeader("SuperTracking")
+if api.SuperTracking.IsSupported() then
+    createSectionHeader("SuperTracking")
 
-createCheckbox(
-    "Enable tracking", "Show a marker on the compass banner for whatever you're currently super-tracking.",
-    api.SuperTracking.IsEnabled,
-    function(enabled)
-        if enabled then api.SuperTracking.Enable() else api.SuperTracking.Disable() end
-    end
-)
+    createCheckbox(
+        "Enable tracking", "Show a marker on the compass banner for whatever you're currently super-tracking.",
+        api.SuperTracking.IsEnabled,
+        function(enabled)
+            if enabled then api.SuperTracking.Enable() else api.SuperTracking.Disable() end
+        end
+    )
 
-createCheckbox(
-    "Show distance", "Show the distance to the super-tracked target.",
-    api.SuperTracking.GetShowDistance, api.SuperTracking.SetShowDistance,
-    api.SuperTracking.IsEnabled, true
-)
+    createCheckbox(
+        "Show distance", "Show the distance to the super-tracked target.",
+        api.SuperTracking.GetShowDistance, api.SuperTracking.SetShowDistance,
+        api.SuperTracking.IsEnabled, true
+    )
 
-createCheckbox(
-    "Show ETA", "Show an estimated time of arrival to the super-tracked target.",
-    api.SuperTracking.GetShowETA, api.SuperTracking.SetShowETA,
-    api.SuperTracking.IsEnabled, true
-)
+    createCheckbox(
+        "Show ETA", "Show an estimated time of arrival to the super-tracked target.",
+        api.SuperTracking.GetShowETA, api.SuperTracking.SetShowETA,
+        api.SuperTracking.IsEnabled, true
+    )
+end
 
 -- Run after layout has settled (hence the C_Timer.After(0) at each call site), since a
 -- frame's edges aren't known until then and the wrapped notes text changes its height.
