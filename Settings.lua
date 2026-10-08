@@ -32,8 +32,10 @@ local DetailLevel = _C.CompassDetail
 local ICON = "Interface\\AddOns\\Wayfinder\\Media\\Icon.jpg"
 
 -- Page layout. Every row is ROW_WIDTH wide: the label starts LABEL_X in (further for a
--- sub-setting), and the control sits in a column starting at CONTROL_X.
+-- sub-setting), and the control sits in a column starting at CONTROL_X. Rows are spaced
+-- ROW_GAP apart (35 pixels from one row to the next, as on Blizzard's own pages).
 local ROW_HEIGHT = 26
+local ROW_GAP = 9
 local LABEL_X = 10
 local SUBROW_INDENT = 18
 local CONTROL_X = 250
@@ -139,7 +141,8 @@ end
 
 local function createSectionHeader(text)
     local header = CreateFrame("Frame", nil, content)
-    header:SetSize(ROW_WIDTH, SECTION_HEIGHT)
+    -- The gap above the first row below the header is part of the header's height.
+    header:SetSize(ROW_WIDTH, SECTION_HEIGHT - ROW_GAP)
 
     local title = header:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
     title:SetPoint("TOPLEFT", SECTION_TITLE_X, -16)
@@ -200,7 +203,7 @@ local function createRow(label, getTooltip, isSubrow)
         self.label:SetFontObject(enabled and normal or disabled)
     end
 
-    place(row, 0, 0)
+    place(row, 0, ROW_GAP)
     return row
 end
 
