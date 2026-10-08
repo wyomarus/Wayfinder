@@ -26,6 +26,31 @@ _C.BANNER_WIDTH = BANNER_WIDTH
 _C.BANNER_HEIGHT = BANNER_HEIGHT
 _C.FOV = FOV
 
+--- The strengths of the optional dark backdrop behind the banner. Published on
+--- addon.Constants since Settings.lua and Slash.lua need it too.
+_C.BannerOverlay = {
+    Off = 0,
+    Subtle = 1,
+    Medium = 2,
+    Strong = 3,
+}
+local BannerOverlay = _C.BannerOverlay
+
+local DEFAULT_OVERLAY = BannerOverlay.Off
+
+-- Opacity of the backdrop at each strength.
+local OVERLAY_ALPHA = {
+    [BannerOverlay.Subtle] = 0.4,
+    [BannerOverlay.Medium] = 0.6,
+    [BannerOverlay.Strong] = 0.85,
+}
+
+-- Media/BannerFade.tga is black fading smoothly to transparent toward every edge: 35% of
+-- its width from each side, 30% of its height from top and bottom. The texture is drawn
+-- taller than the banner so the vertical fade lands outside the text rather than on it.
+local OVERLAY_TEXTURE = "Interface\\AddOns\\Wayfinder\\Media\\BannerFade"
+local OVERLAY_VERTICAL_PADDING = 10
+
 local elements = {}
 
 --- Add an element to the compass banner.
@@ -107,10 +132,40 @@ local function buildCompassBannerFrame()
     background:Hide()
     frame.dragBackground = background
 
+    local overlay = frame:CreateTexture(nil, "BACKGROUND", nil, -1)
+    overlay:SetTexture(OVERLAY_TEXTURE)
+    overlay:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, OVERLAY_VERTICAL_PADDING)
+    overlay:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, -OVERLAY_VERTICAL_PADDING)
+    overlay:Hide()
+    frame.overlay = overlay
+
     return frame
 end
 
 addon.CompassBannerFrame = addon.CompassBannerFrame or buildCompassBannerFrame()
+
+local bannerOverlay = _p.getOrSetDefault("bannerOverlay", DEFAULT_OVERLAY)
+
+--- Render a backdrop strength without changing the remembered preference.
+--- @param level number One of the BannerOverlay values.
+local function applyOverlay(level)
+    local overlay = addon.CompassBannerFrame.overlay
+    local alpha = OVERLAY_ALPHA[level]
+    overlay:SetShown(alpha ~= nil)
+    if alpha then overlay:SetAlpha(alpha) end
+end
+applyOverlay(bannerOverlay)
+
+--- Set the user's preferred backdrop strength: applies it now and remembers it.
+--- Refreshing the Settings panel keeps its stepper in sync when this changes via a slash
+--- command instead of the panel itself.
+--- @param level number One of the BannerOverlay values.
+local function setBannerOverlay(level)
+    bannerOverlay = level
+    WayfinderSettings.bannerOverlay = level
+    applyOverlay(level)
+    _p.refreshSettingsPanel()
+end
 
 -- Whether the center line is shown combines two things: the user's remembered preference
 -- (showCenterLine), and whether the current compass detail level calls for a line at all
@@ -215,6 +270,8 @@ api.CompassBanner = {
     IsShown = function() return addon.CompassBannerFrame:IsShown() end,
     GetShowCenterLine = function() return showCenterLine end,
     SetShowCenterLine = setShowCenterLine,
+    GetOverlay = function() return bannerOverlay end,
+    SetOverlay = setBannerOverlay,
 }
 
 local function asDegrees(radians)

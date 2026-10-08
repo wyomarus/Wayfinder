@@ -106,6 +106,22 @@ local function SetCompassDetail(arg)
     print("Compass detail set to " .. level .. ".")
 end
 
+local function SetBannerBackground(arg)
+    local BannerOverlay = _C.BannerOverlay
+    local level = tonumber(arg)
+    if not level or level < BannerOverlay.Off or level > BannerOverlay.Strong or level % 1 ~= 0 then
+        print("Usage: /wayfinder background <0-3>")
+        print(" 0 - no background (default)")
+        print(" 1 - subtle")
+        print(" 2 - medium")
+        print(" 3 - strong")
+        return
+    end
+
+    api.CompassBanner.SetOverlay(level)
+    print("Banner background set to " .. level .. ".")
+end
+
 local function PrintUsage()
     print("Usage:")
     print("/wayfinder show - Show the compass banner")
@@ -117,6 +133,7 @@ local function PrintUsage()
     print("/wayfinder compass enable|disable - Enable or disable the CardinalPoints")
     print("/wayfinder detail <0-3> - Set how much compass detail is shown")
     print("/wayfinder centerline enable|disable - Show or hide the line at the center of the banner")
+    print("/wayfinder background <0-3> - Set the strength of the dark fade behind the banner")
     print("/wayfinder tracking enable|disable - Enable or disable SuperTracking")
     print("/wayfinder distance enable|disable - Show or hide the SuperTracking distance readout")
     print("/wayfinder eta enable|disable - Show or hide the SuperTracking ETA readout")
@@ -139,6 +156,7 @@ local commandHandlers = {
         enable = EnableCenterLine,
         disable = DisableCenterLine,
     },
+    background = SetBannerBackground,
     tracking = {
         enable = EnableSuperTracking,
         disable = DisableSuperTracking,

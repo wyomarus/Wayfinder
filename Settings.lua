@@ -28,6 +28,7 @@ local SOUNDKIT = SOUNDKIT
 local GetAddOnMetadata = C_AddOns.GetAddOnMetadata
 
 local DetailLevel = _C.CompassDetail
+local BannerOverlay = _C.BannerOverlay
 
 local ICON = "Interface\\AddOns\\Wayfinder\\Media\\Icon.jpg"
 
@@ -117,6 +118,7 @@ function panel.OnDefault()
     _p.enableCompassBanner()
     api.CompassBanner.Lock()
     api.CardinalPoints.SetDetail(DetailLevel.Pips)
+    api.CompassBanner.SetOverlay(BannerOverlay.Off)
     api.CompassBanner.SetShowCenterLine(true)
     api.SuperTracking.Enable()
     api.SuperTracking.SetShowDistance(true)
@@ -470,6 +472,13 @@ createButtonRow(
     function() api.CompassBanner.ResetPosition() end,
     api.CompassBanner.IsShown
 )
+
+createStepper("Banner background", {
+    { value = BannerOverlay.Off, label = "Off", tooltip = "No background behind the banner." },
+    { value = BannerOverlay.Subtle, label = "Subtle", tooltip = "A faint dark fade behind the banner." },
+    { value = BannerOverlay.Medium, label = "Medium", tooltip = "A dark fade behind the banner." },
+    { value = BannerOverlay.Strong, label = "Strong", tooltip = "A strong dark fade behind the banner, for busy backgrounds." },
+}, api.CompassBanner.GetOverlay, api.CompassBanner.SetOverlay, api.CompassBanner.IsShown)
 
 createStepper("Compass detail", {
     { value = DetailLevel.None, label = "None", tooltip = "Hide compass detail entirely." },
