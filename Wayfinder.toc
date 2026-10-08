@@ -21,5 +21,4 @@ CardinalPoints.lua
 SuperTracking.lua
 Settings.lua
 AddonCompartment.lua
-Events.lua
 Slash.lua
