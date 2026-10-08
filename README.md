@@ -10,6 +10,7 @@ Welcome to Wayfinder, an addon for World of Warcraft that enhances your navigati
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
   - [Usage](#usage)
+  - [Compatibility](#compatibility)
   - [Commands](#commands)
   - [Contributing](#contributing)
   - [License](#license)
@@ -29,6 +30,18 @@ The banner is locked in place by default; `/wayfinder unlock` it to drag it to a
 SuperTracking currently follows quests, user-placed waypoints, area POIs, taxi nodes, and your own corpse. Other trackable target types (scenarios, world content, party members, vignettes) aren't handled yet, so the marker just won't appear for those.
 
 All of the above is configurable from a "Wayfinder" panel in the game's own Settings (Escape > Options > AddOns), reachable with `/wayfinder settings` or from the minimap's Addon Compartment dropdown, which also toggles the banner with a click.
+
+## Compatibility
+
+Wayfinder is developed and tested first on WoW: Forever. The other clients get less testing, and Classic Era is new and experimental.
+
+| Client | Interface | Status | Notes |
+| --- | --- | --- | --- |
+| WoW: Forever (beta) | 16001 | Primary | Everything. Checked before every release. |
+| Retail | 120100 | Supported | Everything. Checked when convenient. Blizzard's own tracking is better here, so you may prefer to turn Wayfinder's tracking off in its settings. |
+| Classic Era | 11509 | Experimental | The compass banner, its background and center line, the compass detail levels and the settings page. SuperTracking (the marker, distance and ETA) isn't available, because Classic Era doesn't have the game features it relies on. |
+
+Please report problems on [GitHub Issues](https://github.com/wyomarus/Wayfinder/issues) and say which client you're using.
 
 ## Commands
 

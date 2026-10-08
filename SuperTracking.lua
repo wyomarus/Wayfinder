@@ -4,6 +4,27 @@ local _, addon = ...
 local _p = addon.private
 local api = addon.API
 
+-- SuperTracking needs APIs that only some clients have: Classic Era has no C_SuperTrack,
+-- C_Navigation or Enum.SuperTrackingType, for example. Where they're missing, leave the
+-- rest of the addon working and stand in a version of the module that does nothing, which
+-- the settings page and slash commands check with IsSupported before offering the feature.
+if not (C_SuperTrack and C_Navigation and Enum and Enum.SuperTrackingType and Enum.SuperTrackingMapPinType) then
+    local function doNothing() end
+
+    api.SuperTracking = {
+        IsSupported = function() return false end,
+        Enable = doNothing,
+        Disable = doNothing,
+        IsEnabled = function() return false end,
+        SetShowDistance = doNothing,
+        GetShowDistance = function() return false end,
+        SetShowETA = doNothing,
+        GetShowETA = function() return false end,
+    }
+    api.DebugSuperTracking = doNothing
+    return
+end
+
 local bind = _p.bind
 
 -- Cache global references
@@ -476,6 +497,7 @@ api.SetElementEnabled(superTrackingElement, trackingEnabled)
 -- Refreshing the Settings panel below keeps its checkboxes in sync when these are changed
 -- via a slash command instead of the panel itself.
 api.SuperTracking = {
+    IsSupported = function() return true end,
     Enable = function()
         api.SetElementEnabled(superTrackingElement, true)
         trackingEnabled = true
