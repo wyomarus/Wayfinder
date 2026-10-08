@@ -188,7 +188,7 @@ local function createRow(label, getTooltip, isSubrow)
     --- A control on the row takes the mouse from the row itself, so it has to pass its
     --- hover state back.
     --- @param frame table
-    function row:LinkHover(frame)
+    function row.LinkHover(frame)
         frame:HookScript("OnEnter", function() setHovered(true) end)
         frame:HookScript("OnLeave", function() setHovered(false) end)
     end
@@ -216,7 +216,7 @@ local function createCheckbox(label, tooltip, getValue, setValue, isEnabled, isS
     local checkbox = CreateFrame("CheckButton", nil, row)
     checkbox:SetSize(ROW_HEIGHT, ROW_HEIGHT)
     checkbox:SetPoint("LEFT", CONTROL_X, 0)
-    row:LinkHover(checkbox)
+    row.LinkHover(checkbox)
 
     local box = checkbox:CreateTexture(nil, "ARTWORK")
     box:SetAllPoints(checkbox)
@@ -325,7 +325,7 @@ local function createStepper(label, options, getValue, setValue, isEnabled)
     local stepper = CreateFrame("Frame", nil, row)
     stepper:SetSize(CONTROL_WIDTH, ARROW_SIZE)
     stepper:SetPoint("LEFT", CONTROL_X, 0)
-    row:LinkHover(stepper)
+    row.LinkHover(stepper)
 
     local function step(direction)
         local option = options[selected + direction]
@@ -338,8 +338,8 @@ local function createStepper(label, options, getValue, setValue, isEnabled)
     previousButton:SetPoint("LEFT")
     local nextButton = createArrowButton(stepper, "Next", function() step(1) end)
     nextButton:SetPoint("RIGHT")
-    row:LinkHover(previousButton)
-    row:LinkHover(nextButton)
+    row.LinkHover(previousButton)
+    row.LinkHover(nextButton)
 
     -- The value sits on the same button-style background Blizzard's dropdowns use. The art
     -- is padded past the button's edges, so it's inset from the arrows to end where they do.
@@ -357,8 +357,8 @@ local function createStepper(label, options, getValue, setValue, isEnabled)
         barBackground:SetAllPoints(bar)
     end
 
-    local text = bar:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    text:SetPoint("CENTER", bar)
+    stepper.text = bar:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    stepper.text:SetPoint("CENTER", bar)
 
     function stepper:Refresh()
         local value = getValue()
@@ -366,12 +366,12 @@ local function createStepper(label, options, getValue, setValue, isEnabled)
         for index, option in ipairs(options) do
             if option.value == value then selected = index end
         end
-        text:SetText(options[selected].label)
+        self.text:SetText(options[selected].label)
 
         local enabled = not isEnabled or isEnabled()
         previousButton:SetEnabled(enabled and selected > 1)
         nextButton:SetEnabled(enabled and selected < #options)
-        text:SetFontObject(enabled and "GameFontHighlight" or "GameFontDisable")
+        self.text:SetFontObject(enabled and "GameFontHighlight" or "GameFontDisable")
         row:SetLabelEnabled(enabled)
     end
 
@@ -393,7 +393,7 @@ local function createButtonRow(label, buttonText, tooltip, onClick, isEnabled)
     button:SetSize(140, 22)
     button:SetPoint("LEFT", CONTROL_X, 0)
     button:SetScript("OnClick", onClick)
-    row:LinkHover(button)
+    row.LinkHover(button)
 
     function button:Refresh()
         local enabled = not isEnabled or isEnabled()
