@@ -44,6 +44,7 @@ All commands are available under `/wayfinder` or the shorter `/wf`.
 | `/wayfinder settings` | Open the Wayfinder settings panel |
 | `/wayfinder compass enable\|disable` | Enable or disable the cardinal/intercardinal direction markers |
 | `/wayfinder detail <0-3>` | Set how much compass detail is shown (0 = none, 3 = cardinals + intercardinals + 15° ticks) |
+| `/wayfinder centerline enable\|disable` | Show or hide the line at the center of the banner |
 | `/wayfinder tracking enable\|disable` | Enable or disable the SuperTracking marker |
 | `/wayfinder distance enable\|disable` | Show or hide the SuperTracking distance readout |
 | `/wayfinder eta enable\|disable` | Show or hide the SuperTracking ETA readout |

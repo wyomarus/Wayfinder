@@ -48,6 +48,7 @@ function panel.OnDefault()
     _p.enableCompassBanner()
     api.CompassBanner.Lock()
     api.CardinalPoints.SetDetail(DetailLevel.Pips)
+    api.CompassBanner.SetShowCenterLine(true)
     api.SuperTracking.Enable()
     api.SuperTracking.SetShowDistance(true)
     api.SuperTracking.SetShowETA(true)
@@ -221,6 +222,12 @@ createDetailRadio(DetailLevel.None, "None", "Hide compass detail entirely.")
 createDetailRadio(DetailLevel.Cardinals, "Cardinals", "Cardinal directions only (N, E, S, W).")
 createDetailRadio(DetailLevel.Intercardinals, "Intercardinals", "Cardinal and intercardinal directions.")
 createDetailRadio(DetailLevel.Pips, "Pips", "Cardinal, intercardinal, and a tick every 15 degrees.")
+
+createCheckbox(
+    "Show center line", "Show the line at the middle of the banner marking the direction you're facing. Not shown when compass detail is None.",
+    api.CompassBanner.GetShowCenterLine, api.CompassBanner.SetShowCenterLine,
+    function() return api.CardinalPoints.GetDetail() ~= DetailLevel.None end
+)
 
 -- SuperTracking
 
