@@ -69,7 +69,8 @@ local arrowAtlasAvailable = C_Texture and C_Texture.GetAtlasInfo and C_Texture.G
     and C_Texture.GetAtlasInfo(ARROW_ATLAS .. "-pressedhover") ~= nil
     and C_Texture.GetAtlasInfo(ARROW_ATLAS .. "-disabled") ~= nil
 
-local TITLE_FONT =_G.GameFontHighlightHuge2 and "GameFontHighlightHuge2" or "GameFontHighlightLarge"
+local STATUS_FONT = _G.GameFontRed and "GameFontRed" or "GameFontNormal"
+local TITLE_FONT = _G.GameFontHighlightHuge2 and "GameFontHighlightHuge2" or "GameFontHighlightLarge"
 
 local panel = CreateFrame("Frame")
 panel:Hide()
@@ -411,6 +412,31 @@ local function createButtonRow(label, buttonText, tooltip, onClick, isEnabled)
     return button
 end
 
+--- A message that takes up room on the page only while there's something to say, such as
+--- why the banner isn't showing. Red, like Blizzard's own warning labels.
+--- @param getMessage function Returns the message, or nil for none.
+local function createStatusRow(getMessage)
+    local row = CreateFrame("Frame", nil, content)
+    row:SetSize(ROW_WIDTH, 1)
+
+    local text = row:CreateFontString(nil, "OVERLAY", STATUS_FONT)
+    text:SetPoint("TOPLEFT", LABEL_X, 0)
+    text:SetWidth(ROW_WIDTH - 2 * LABEL_X)
+    text:SetJustifyH("LEFT")
+    text:SetJustifyV("TOP")
+
+    function row:Refresh()
+        local message = getMessage()
+        text:SetText(message or "")
+        self:SetHeight(message and (text:GetStringHeight() + ROW_GAP) or 1)
+        C_Timer.After(0, updateContentHeight)
+    end
+
+    place(row, 0, 0)
+    table.insert(controls, row)
+    return row
+end
+
 -- Page header: icon, name, version, author, and the .toc's notes, over a divider.
 
 local icon = content:CreateTexture(nil, "ARTWORK")
@@ -449,9 +475,17 @@ previous, previousIndent = notes, SECTION_TITLE_X
 
 createSectionHeader("Compass banner")
 
+-- Explains a banner that isn't showing although it's turned on, so it doesn't just seem
+-- to be missing. Empty, and taking no room, otherwise.
+createStatusRow(function()
+    if api.CompassBanner.IsEnabled() and not api.CompassBanner.IsFacingAvailable() then
+        return "The compass banner is hidden because the game isn't reporting which way you're facing here."
+    end
+end)
+
 createCheckbox(
     "Show compass banner", "Show or hide the compass banner.",
-    api.CompassBanner.IsShown,
+    api.CompassBanner.IsEnabled,
     function(shown)
         if shown then _p.enableCompassBanner() else _p.disableCompassBanner() end
     end
@@ -463,14 +497,14 @@ createCheckbox(
     function(locked)
         if locked then api.CompassBanner.Lock() else api.CompassBanner.Unlock() end
     end,
-    api.CompassBanner.IsShown,
+    api.CompassBanner.IsEnabled,
     true
 )
 
 createButtonRow(
     "Banner position", "Reset position", "Reset the compass banner to its default position.",
     function() api.CompassBanner.ResetPosition() end,
-    api.CompassBanner.IsShown
+    api.CompassBanner.IsEnabled
 )
 
 createStepper("Banner background", {
@@ -478,19 +512,19 @@ createStepper("Banner background", {
     { value = BannerOverlay.Subtle, label = "Subtle", tooltip = "A faint dark fade behind the banner." },
     { value = BannerOverlay.Medium, label = "Medium", tooltip = "A dark fade behind the banner." },
     { value = BannerOverlay.Strong, label = "Strong", tooltip = "A strong dark fade behind the banner, for busy backgrounds." },
-}, api.CompassBanner.GetOverlay, api.CompassBanner.SetOverlay, api.CompassBanner.IsShown)
+}, api.CompassBanner.GetOverlay, api.CompassBanner.SetOverlay, api.CompassBanner.IsEnabled)
 
 createStepper("Compass detail", {
     { value = DetailLevel.None, label = "None", tooltip = "Hide compass detail entirely." },
     { value = DetailLevel.Cardinals, label = "Cardinals", tooltip = "Cardinal directions only (N, E, S, W)." },
     { value = DetailLevel.Intercardinals, label = "Intercardinals", tooltip = "Cardinal and intercardinal directions." },
     { value = DetailLevel.Pips, label = "Pips", tooltip = "Cardinal, intercardinal, and a tick every 15 degrees." },
-}, api.CardinalPoints.GetDetail, api.CardinalPoints.SetDetail, api.CompassBanner.IsShown)
+}, api.CardinalPoints.GetDetail, api.CardinalPoints.SetDetail, api.CompassBanner.IsEnabled)
 
 createCheckbox(
     "Show center line", "Show the line at the middle of the banner marking the direction you're facing. Not shown when compass detail is None.",
     api.CompassBanner.GetShowCenterLine, api.CompassBanner.SetShowCenterLine,
-    function() return api.CompassBanner.IsShown() and api.CardinalPoints.GetDetail() ~= DetailLevel.None end
+    function() return api.CompassBanner.IsEnabled() and api.CardinalPoints.GetDetail() ~= DetailLevel.None end
 )
 
 -- SuperTracking, on clients that have it (not Classic Era, for example)

@@ -51,7 +51,7 @@ end
 _p.getOrSetDefault = getOrSetDefault
 
 --- Bring the Settings panel's controls up to date after a setting changes through some
---- other path - a slash command, the minimap button, or Events.lua auto-hiding the banner.
+--- other path - a slash command or the minimap button.
 --- A no-op until Settings.lua loads and replaces it, since until then there's no panel.
 _p.refreshSettingsPanel = function() end
 

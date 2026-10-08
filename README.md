@@ -23,7 +23,7 @@ Welcome to Wayfinder, an addon for World of Warcraft that enhances your navigati
 
 ## Usage
 
-Once installed, Wayfinder will automatically display a compass banner at the top of your screen when you log into the game. The banner shows cardinal and intercardinal directions plus a marker, distance, and ETA readout for whatever you're currently super-tracking (a quest, a waypoint, a corpse run, etc.). It hides itself automatically while you're inside an instance.
+Once installed, Wayfinder will automatically display a compass banner at the top of your screen when you log into the game. The banner shows cardinal and intercardinal directions plus a marker, distance, and ETA readout for whatever you're currently super-tracking (a quest, a waypoint, a corpse run, etc.). It hides itself anywhere the game doesn't report which way you're facing (inside most dungeons, for example), rather than leave the compass frozen, and the settings page says so when it does.
 
 The banner is locked in place by default; `/wayfinder unlock` it to drag it to a new spot, then `/wayfinder lock` it back down - see [Commands](#commands).
 

@@ -25,7 +25,6 @@ globals = {
     "SOUNDKIT",
     "GameTooltip",
     "GameTooltip_Hide",
-    "IsInInstance",
     "UIParent",
     "Enum",
     "SlashCmdList",

@@ -9,6 +9,7 @@ local _C = addon.Constants
 local deg, rad = math.deg, math.rad
 local abs = math.abs
 local GetPlayerFacing = GetPlayerFacing
+local issecretvalue = issecretvalue or function() return false end
 local CreateFrame = CreateFrame
 local UIParent = UIParent
 
@@ -354,30 +355,59 @@ local function processElement(element, facing)
     end
 end
 
+-- Some places don't report which way the player is facing (the dungeons in Azj-Kahet were
+-- the first to show it), and in combat the value can be a "secret" that arithmetic on
+-- throws. Without a usable facing there's nothing to position the elements by, so rather
+-- than leave them frozen where they were, the banner is made invisible until it's back. It
+-- stays "shown" so this update keeps running to notice that.
+local facingAvailable = true
+
 local function onUpdate()
     local facing = GetPlayerFacing()
-    if not facing then return end
+    local available = facing ~= nil and not issecretvalue(facing)
+    if available ~= facingAvailable then
+        facingAvailable = available
+        addon.CompassBannerFrame:SetAlpha(available and 1 or 0)
+        _p.refreshSettingsPanel()
+    end
+    if not available then return end
 
     for _, element in ipairs(elements) do
         processElement(element, facing)
     end
 end
 
--- Refreshing the Settings panel keeps its "Show compass banner" checkbox in sync when the
--- banner is shown or hidden through some other path - a slash command, the minimap
--- button, or Events.lua auto-hiding it in instances - rather than through the checkbox.
-local function enableCompassBanner()
-    addon.CompassBannerFrame:Show()
-    addon.CompassBannerFrame:SetScript("OnUpdate", onUpdate)
+-- The banner is shown when the user wants it (showBanner, remembered across sessions). Where
+-- the game isn't reporting which way the player is facing, onUpdate also makes it invisible
+-- without touching that choice, so it comes back by itself when facing does.
+local showBanner = _p.getOrSetDefault("showBanner", true)
+
+-- Refreshing the Settings panel keeps its controls in sync when the banner changes through
+-- some other path - a slash command or the minimap button - rather than through the panel
+-- itself.
+local function updateBannerVisibility()
+    addon.CompassBannerFrame:SetShown(showBanner)
+    addon.CompassBannerFrame:SetScript("OnUpdate", showBanner and onUpdate or nil)
     _p.refreshSettingsPanel()
+end
+
+--- Show the banner at the user's request, and remember it.
+local function enableCompassBanner()
+    showBanner = true
+    WayfinderSettings.showBanner = true
+    updateBannerVisibility()
 end
 _p.enableCompassBanner = enableCompassBanner
 
+--- Hide the banner at the user's request, and remember it.
 local function disableCompassBanner()
-    addon.CompassBannerFrame:Hide()
-    addon.CompassBannerFrame:SetScript("OnUpdate", nil)
-    _p.refreshSettingsPanel()
+    showBanner = false
+    WayfinderSettings.showBanner = false
+    updateBannerVisibility()
 end
 _p.disableCompassBanner = disableCompassBanner
 
-enableCompassBanner()
+api.CompassBanner.IsEnabled = function() return showBanner end
+api.CompassBanner.IsFacingAvailable = function() return facingAvailable end
+
+updateBannerVisibility()
