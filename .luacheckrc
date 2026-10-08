@@ -38,6 +38,9 @@ globals = {
     "C_Navigation",
     "C_DeathInfo",
     "C_AddOns",
+    "C_Texture",
+    "C_Timer",
+    "ScrollUtil",
     "AbbreviateNumbers",
     "IN_GAME_NAVIGATION_RANGE",
 
