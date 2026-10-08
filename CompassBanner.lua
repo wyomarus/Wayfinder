@@ -112,17 +112,37 @@ end
 
 addon.CompassBannerFrame = addon.CompassBannerFrame or buildCompassBannerFrame()
 
---- Show or hide the center "straight ahead" line independently of the banner itself.
+-- Whether the center line is shown combines two things: the user's remembered preference
+-- (showCenterLine), and whether the current compass detail level calls for a line at all
+-- (centerLineAllowed, set by CardinalPoints.lua). Keeping them apart means changing the
+-- detail level never overwrites the preference.
+local showCenterLine = _p.getOrSetDefault("showCenterLine", true)
+local centerLineAllowed = true
+
+local function updateCenterLine()
+    addon.CompassBannerFrame.centerLine:SetShown(showCenterLine and centerLineAllowed)
+end
+
+--- Allow or disallow the center "straight ahead" line independently of the banner itself.
+--- It's still hidden while the user's preference is off.
 --- @param shown boolean
 local function setCenterLineShown(shown)
-    if shown then
-        addon.CompassBannerFrame.centerLine:Show()
-    else
-        addon.CompassBannerFrame.centerLine:Hide()
-    end
+    centerLineAllowed = shown
+    updateCenterLine()
 end
 
 api.SetCenterLineShown = setCenterLineShown
+
+--- Set the user's preference for the center line: applies it now and remembers it.
+--- Refreshing the Settings panel keeps its checkbox in sync when this changes via a slash
+--- command instead of the panel itself.
+--- @param shown boolean
+local function setShowCenterLine(shown)
+    showCenterLine = shown
+    WayfinderSettings.showCenterLine = shown
+    updateCenterLine()
+    _p.refreshSettingsPanel()
+end
 
 --- Remember the banner's current position so it can be restored on the next load.
 local function saveBannerPosition()
@@ -193,6 +213,8 @@ api.CompassBanner = {
     IsLocked = function() return bannerLocked end,
     ResetPosition = resetBannerPosition,
     IsShown = function() return addon.CompassBannerFrame:IsShown() end,
+    GetShowCenterLine = function() return showCenterLine end,
+    SetShowCenterLine = setShowCenterLine,
 }
 
 local function asDegrees(radians)
