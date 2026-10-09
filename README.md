@@ -2,7 +2,7 @@
 
 Welcome to Wayfinder, an addon for World of Warcraft that enhances your navigation experience with a compass banner.
 
-![Wayfinder tracking a quest, with the compass banner, marker, distance, and ETA all visible](Media/Screenshot.png)
+![Wayfinder tracking a quest, with the compass banner, marker, distance, and ETA all visible](docs/images/Screenshot.png)
 
 ## Table of Contents
 
@@ -27,7 +27,7 @@ Once installed, Wayfinder will automatically display a compass banner at the top
 
 The banner is locked in place by default; `/wayfinder unlock` it to drag it to a new spot, then `/wayfinder lock` it back down - see [Commands](#commands).
 
-![The compass banner with the background Off, Subtle, Medium and Strong, and Strong with the center line turned off](Media/BannerBackground.png)
+![The compass banner with the background Off, Subtle, Medium and Strong, and Strong with the center line turned off](docs/images/BannerBackground.png)
 
 A dark fade can be put behind the banner (Off, Subtle, Medium or Strong) to keep the directions readable over bright scenery, and the line at its center can be turned off. Both are in the settings.
 
