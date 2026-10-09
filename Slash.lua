@@ -60,6 +60,10 @@ local function DebugSuperTracking()
     api.DebugSuperTracking()
 end
 
+local function DebugETATrace()
+    api.DebugETATrace()
+end
+
 local function EnableTrackingDistance()
     api.SuperTracking.SetShowDistance(true)
     print("SuperTracking distance readout enabled.")
@@ -153,6 +157,7 @@ local function PrintUsage()
         print("/wayfinder distance enable|disable - Show or hide the SuperTracking distance readout")
         print("/wayfinder eta enable|disable - Show or hide the SuperTracking ETA readout")
         print("/wayfinder debug tracking - Print SuperTracking diagnostic info")
+        print("/wayfinder debug eta - Record 10 seconds of ETA data, for troubleshooting a jumpy ETA")
     end
 end
 
@@ -187,6 +192,7 @@ local commandHandlers = {
     },
     debug = {
         tracking = whenSuperTrackingSupported(DebugSuperTracking),
+        eta = whenSuperTrackingSupported(DebugETATrace),
     },
 }
 
