@@ -27,6 +27,10 @@ Once installed, Wayfinder will automatically display a compass banner at the top
 
 The banner is locked in place by default; `/wayfinder unlock` it to drag it to a new spot, then `/wayfinder lock` it back down - see [Commands](#commands).
 
+![The compass banner with the background Off, Subtle, Medium and Strong, and Strong with the center line turned off](Media/BannerBackground.png)
+
+A dark fade can be put behind the banner (Off, Subtle, Medium or Strong) to keep the directions readable over bright scenery, and the line at its center can be turned off. Both are in the settings.
+
 SuperTracking currently follows quests, user-placed waypoints, area POIs, taxi nodes, and your own corpse. Other trackable target types (scenarios, world content, party members, vignettes) aren't handled yet, so the marker just won't appear for those.
 
 All of the above is configurable from a "Wayfinder" panel in the game's own Settings (Escape > Options > AddOns), reachable with `/wayfinder settings` or from the minimap's Addon Compartment dropdown, which also toggles the banner with a click.
