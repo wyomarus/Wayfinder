@@ -22,5 +22,8 @@ ignore:
   - Libs/HereBeDragons/HereBeDragons-Migrate.lua
   - Libs/HereBeDragons/HereBeDragons-Pins-2.0.lua
   - Libs/HereBeDragons/CHANGELOG.md
-  # Pictures used by the README, not needed in the addon itself.
+  # Pictures the addon itself never loads: the README's screenshots, and the full-size
+  # source of the icon (Media/Icon.jpg is the one it uses).
   - Media/BannerBackground.png
+  - Media/Screenshot.png
+  - Media/Icon-original.jpg
