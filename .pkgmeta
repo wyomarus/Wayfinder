@@ -22,3 +22,5 @@ ignore:
   - Libs/HereBeDragons/HereBeDragons-Migrate.lua
   - Libs/HereBeDragons/HereBeDragons-Pins-2.0.lua
   - Libs/HereBeDragons/CHANGELOG.md
+  # Pictures used by the README, not needed in the addon itself.
+  - Media/BannerBackground.png
