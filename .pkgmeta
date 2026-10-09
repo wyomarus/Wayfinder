@@ -25,3 +25,8 @@ ignore:
   # Documentation, including the README's pictures and the full-size source of the icon:
   # nothing here is loaded by the addon. (Media/ holds only what the addon does load.)
   - docs
+  # The project's own documents, read on GitHub rather than in the addon. LICENSE.md stays,
+  # since the license has to travel with the code, and RELEASE.md is the changelog.
+  - README.md
+  - DEVNOTES.md
+  - HISTORY.md
