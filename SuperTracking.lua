@@ -22,6 +22,7 @@ if not (C_SuperTrack and C_Navigation and Enum and Enum.SuperTrackingType and En
         GetShowETA = function() return false end,
     }
     api.DebugSuperTracking = doNothing
+    api.DebugETATrace = doNothing
     return
 end
 
@@ -30,6 +31,7 @@ local bind = _p.bind
 -- Cache global references
 local deg = math.deg
 local print = print
+local format = string.format
 local GetTime = GetTime
 local GetUnitSpeed = GetUnitSpeed
 local issecretvalue = issecretvalue
@@ -332,46 +334,132 @@ local function formatETA(seconds)
     return math.floor(seconds / 60) .. "m " .. (seconds % 60) .. "s"
 end
 
--- The ETA comes from how quickly the distance to the target is shrinking, sampled a few times
--- a second and smoothed, not from the player's movement speed. GetUnitSpeed reports 0 as the
--- current speed while flying, can't tell moving toward the target from moving away, and can
--- be a "secret" value in combat (WoW 12.0+'s addon disarmament system), which arithmetic on
--- throws. Distance can be read in every situation, so this works the same on foot, on a
--- mount, while flying or Skyriding, and on a taxi.
-local ETA_SAMPLE_INTERVAL = 0.25 -- seconds between distance samples
-local ETA_SMOOTHING = 0.3 -- how much of the way each new sample moves the estimate
-local ETA_RESTART_AFTER = 1.5 -- seconds without a sample before starting over
+-- The ETA comes from how quickly the distance to the target is shrinking, not from the
+-- player's movement speed. GetUnitSpeed reports 0 as the current speed while flying, can't
+-- tell moving toward the target from moving away, and can be a "secret" value in combat
+-- (WoW 12.0+'s addon disarmament system), which arithmetic on throws. Distance can be read in
+-- every situation, so this works the same on foot, on a mount, while flying or Skyriding, and
+-- on a taxi.
+--
+-- Distance is noisy, though: recorded on a real walk, a speed worked out from a quarter of a
+-- second of it is about 1% off, and at an ETA of three minutes that's two seconds - enough to
+-- make the seconds flip up and down. So what's shown is a countdown that ticks down by itself
+-- and only jumps when a fresh estimate disagrees with it by more than a few percent. The
+-- estimates come from the most recent stretch of the distance history - the last half of it:
+-- at first only half a second or so, which is nearly instantaneous and shows a number after a
+-- second, then up to a second as the history fills in, which is steadier. A longer average
+-- would still be counting the time the player spent getting up to speed. Stopping, or moving
+-- away, is judged on the last third of a second alone, so that "--" shows up promptly, and
+-- while the player is still slowing down the countdown is never moved to a longer ETA - that
+-- would only be the start of a stop, showing a number that counts up for an instant.
+local ETA_WINDOW = 2 -- seconds of distance history kept
+local ETA_WARMUP = 1 -- seconds of history needed before an ETA is shown
+local ETA_LOOKBACK_MIN = 0.5 -- the speed is measured over the last half of the history, but over at least this...
+local ETA_LOOKBACK_MAX = 1 -- ...and at most this many seconds
+local ETA_STOP_WINDOW = 0.3 -- seconds the player must have been approaching over, or there's no ETA
+local ETA_SLOWING_FRACTION = 0.97 -- below this fraction of the speed, the player is still slowing down
 local ETA_MIN_CLOSING_SPEED = 0.5 -- yards per second below which the player counts as not approaching
+local ETA_RECORD_INTERVAL = 0.05 -- seconds between records of the distance
+local ETA_RESTART_AFTER = 1.5 -- seconds without an update before starting over
+local ETA_TOLERANCE_SECONDS = 1.5 -- how far an estimate can differ from the countdown before the countdown jumps to it...
+local ETA_TOLERANCE_FRACTION = 0.04 -- ...or this fraction of the estimate, whichever is more
 
-local lastSampleDistance, lastSampleTime, closingSpeed
+local historyTimes, historyDistances = {}, {}
+local closingSpeed, anchorETA, anchorTime
 
---- Take another distance sample, if it's time, and update how fast the player is closing in
---- on the target, or nil if they aren't. Forgets everything while there's no target.
---- @param distance number|nil Distance to the super-tracked target, in yards.
-local function updateClosingSpeed(distance)
+local function clearList(list)
+    for i = #list, 1, -1 do
+        list[i] = nil
+    end
+end
+
+--- Forget the distance history and the countdown, so the next ETA starts afresh.
+local function forgetETA()
+    clearList(historyTimes)
+    clearList(historyDistances)
+    closingSpeed, anchorETA, anchorTime = nil, nil, nil
+end
+
+--- Take in the latest distance to the target and work out the ETA, in seconds.
+--- @param distance number|nil Distance to the super-tracked target, in yards. Nil forgets everything.
+--- @return number|nil eta Seconds to arrive, or nil if the player isn't clearly approaching (yet).
+local function updateETA(distance)
     if not distance then
-        lastSampleDistance, lastSampleTime, closingSpeed = nil, nil, nil
-        return
+        forgetETA()
+        return nil
     end
 
     local now = GetTime()
-    if not lastSampleTime or now - lastSampleTime > ETA_RESTART_AFTER then
-        lastSampleDistance, lastSampleTime, closingSpeed = distance, now, nil
-        return
+    local count = #historyTimes
+    if count > 0 and now - historyTimes[count] > ETA_RESTART_AFTER then
+        forgetETA()
+        count = 0
     end
 
-    local elapsed = now - lastSampleTime
-    if elapsed < ETA_SAMPLE_INTERVAL then return end
+    if count == 0 or now - historyTimes[count] >= ETA_RECORD_INTERVAL then
+        count = count + 1
+        historyTimes[count], historyDistances[count] = now, distance
+    end
 
-    -- Stopping, or moving away, is shown at once. Smoothing it would let the estimate drift
-    -- down toward zero over several seconds, and the ETA would climb all the while.
-    local sample = (lastSampleDistance - distance) / elapsed
-    if sample <= ETA_MIN_CLOSING_SPEED then
+    -- Keep one record at least a window old, as the far end of the average, and nothing older.
+    while count > 1 and now - historyTimes[2] >= ETA_WINDOW do
+        table.remove(historyTimes, 1)
+        table.remove(historyDistances, 1)
+        count = count - 1
+    end
+
+    -- Not approaching: shown at once, and the history starts over once the player moves again.
+    local recent
+    for i = count, 1, -1 do
+        if now - historyTimes[i] >= ETA_STOP_WINDOW then
+            recent = i
+            break
+        end
+    end
+    if not recent then
         closingSpeed = nil
-    else
-        closingSpeed = closingSpeed and (closingSpeed + ETA_SMOOTHING * (sample - closingSpeed)) or sample
+        return nil
     end
-    lastSampleDistance, lastSampleTime = distance, now
+    local recentSpeed = (historyDistances[recent] - distance) / (now - historyTimes[recent])
+    if recentSpeed <= ETA_MIN_CLOSING_SPEED then
+        forgetETA()
+        return nil
+    end
+
+    local span = now - historyTimes[1]
+    if span < ETA_WARMUP then
+        closingSpeed = nil
+        return nil
+    end
+
+    -- The speed over the most recent stretch: half the history, within the limits above.
+    local lookback = math.min(ETA_LOOKBACK_MAX, math.max(ETA_LOOKBACK_MIN, span / 2))
+    local base = 1
+    for i = count, 1, -1 do
+        if now - historyTimes[i] >= lookback then
+            base = i
+            break
+        end
+    end
+    closingSpeed = (historyDistances[base] - distance) / math.max(now - historyTimes[base], 0.001)
+    if closingSpeed <= ETA_MIN_CLOSING_SPEED then
+        closingSpeed, anchorETA, anchorTime = nil, nil, nil
+        return nil
+    end
+
+    local estimate = distance / closingSpeed
+    if not anchorETA then
+        anchorETA, anchorTime = estimate, now
+    else
+        local counted = anchorETA - (now - anchorTime)
+        local slowing = recentSpeed < ETA_SLOWING_FRACTION * closingSpeed
+        if math.abs(estimate - counted) > math.max(ETA_TOLERANCE_SECONDS, ETA_TOLERANCE_FRACTION * estimate)
+            and not (slowing and estimate > counted) then
+            anchorETA, anchorTime = estimate, now
+        end
+    end
+
+    return math.max(anchorETA - (now - anchorTime), 0)
 end
 
 --- Show the distance and/or ETA to the super-tracked target below the marker (ETA below
@@ -379,14 +467,17 @@ end
 --- turned off. Distance uses Blizzard's own localized IN_GAME_NAVIGATION_RANGE string
 --- (the same one SuperTrackedFrame uses) rather than a hardcoded unit suffix, since the
 --- label isn't the same in every locale. ETA is a straight-line estimate from how fast the
---- player is closing in on the target (see updateClosingSpeed), so it's jumpy while turning
---- and shows "--" as soon as the player stops or moves away. Whenever ETA is enabled and there's
+--- player is closing in on the target (see updateETA), so it's jumpy while turning and
+--- shows "--" as soon as the player stops or moves away. Whenever ETA is enabled and there's
 --- a target, the line always shows something ("--" when there's no usable speed yet) rather
 --- than appearing/disappearing, so toggling the setting or standing still both read clearly
 --- instead of looking like nothing happened.
 --- @param distance number|nil Distance to the super-tracked target, in yards.
+local traceETA
+
 updateSuperTrackingReadout = function(distance)
-    updateClosingSpeed(distance)
+    local eta = updateETA(distance)
+    traceETA(distance, eta)
 
     if distance and showTrackingDistance then
         superTrackingDistanceText:SetText(IN_GAME_NAVIGATION_RANGE:format(formatDistance(distance)))
@@ -396,8 +487,8 @@ updateSuperTrackingReadout = function(distance)
     end
 
     if distance and showTrackingETA then
-        if closingSpeed then
-            superTrackingETAText:SetText(formatETA(distance / closingSpeed))
+        if eta then
+            superTrackingETAText:SetText(formatETA(eta))
         else
             superTrackingETAText:SetText("--")
         end
@@ -525,6 +616,44 @@ local function debugSuperTracking()
     print("Wayfinder: debug entry saved (" .. #WayfinderDebug .. " total). /reload or log out to flush to disk.")
 end
 api.DebugSuperTracking = debugSuperTracking
+
+-- While recording (see debugETATrace), every readout update is logged - the time, the
+-- distance to the target, the closing speed and the ETA that gives - so a jumpy ETA can be
+-- studied from the SavedVariables file afterwards instead of guessed at.
+local ETA_TRACE_SECONDS = 10
+local etaTrace = nil
+
+traceETA = function(distance, eta)
+    if not (etaTrace and distance) then return end
+
+    local elapsed = GetTime() - etaTrace.start
+    table.insert(etaTrace.lines, format(
+        "%.3f d=%.3f c=%s eta=%s",
+        elapsed,
+        distance,
+        closingSpeed and format("%.3f", closingSpeed) or "-",
+        eta and format("%.3f", eta) or "-"
+    ))
+
+    if elapsed >= ETA_TRACE_SECONDS then
+        table.insert(WayfinderDebug, { time = date("%Y-%m-%d %H:%M:%S"), source = "etaTrace", lines = etaTrace.lines })
+        while #WayfinderDebug > MAX_DEBUG_ENTRIES do
+            table.remove(WayfinderDebug, 1)
+        end
+        print(format(
+            "Wayfinder: ETA trace saved (%d samples). /reload or log out to write it to disk.",
+            #etaTrace.lines
+        ))
+        etaTrace = nil
+    end
+end
+
+--- Start recording the ETA for a few seconds, to study how it behaves while moving.
+local function debugETATrace()
+    etaTrace = { start = GetTime(), lines = {} }
+    print(format("Wayfinder: recording the ETA for %d seconds - walk straight toward your tracked target.", ETA_TRACE_SECONDS))
+end
+api.DebugETATrace = debugETATrace
 
 local isSticky = true
 
