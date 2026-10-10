@@ -27,6 +27,8 @@ ignore:
   - docs
   # The project's own documents, read on GitHub rather than in the addon. LICENSE.md stays,
   # since the license has to travel with the code, and RELEASE.md is the changelog.
+  # CLAUDE.md is guidance for Claude Code working in the repo.
   - README.md
   - DEVNOTES.md
   - HISTORY.md
+  - CLAUDE.md
