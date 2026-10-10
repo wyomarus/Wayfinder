@@ -56,14 +56,6 @@ local function DisableSuperTracking()
     print("SuperTracking disabled.")
 end
 
-local function DebugSuperTracking()
-    api.DebugSuperTracking()
-end
-
-local function DebugETATrace()
-    api.DebugETATrace()
-end
-
 local function EnableTrackingDistance()
     api.SuperTracking.SetShowDistance(true)
     print("SuperTracking distance readout enabled.")
@@ -156,8 +148,10 @@ local function PrintUsage()
         print("/wayfinder tracking enable|disable - Enable or disable SuperTracking")
         print("/wayfinder distance enable|disable - Show or hide the SuperTracking distance readout")
         print("/wayfinder eta enable|disable - Show or hide the SuperTracking ETA readout")
-        print("/wayfinder debug tracking - Print SuperTracking diagnostic info")
-        print("/wayfinder debug eta - Record 10 seconds of ETA data, for troubleshooting a jumpy ETA")
+        if api.DebugSuperTracking then
+            print("/wayfinder debug tracking - Print SuperTracking diagnostic info")
+            print("/wayfinder debug eta - Record 10 seconds of ETA data, for troubleshooting a jumpy ETA")
+        end
     end
 end
 
@@ -190,11 +184,16 @@ local commandHandlers = {
         enable = whenSuperTrackingSupported(EnableTrackingETA),
         disable = whenSuperTrackingSupported(DisableTrackingETA),
     },
-    debug = {
-        tracking = whenSuperTrackingSupported(DebugSuperTracking),
-        eta = whenSuperTrackingSupported(DebugETATrace),
-    },
 }
+
+-- The diagnostics live in Debug.lua, which a build can leave out, so the commands only exist
+-- (and are only listed above) when it's loaded.
+if api.DebugSuperTracking then
+    commandHandlers.debug = {
+        tracking = whenSuperTrackingSupported(api.DebugSuperTracking),
+        eta = whenSuperTrackingSupported(api.DebugETATrace),
+    }
+end
 
 --- Dispatch a slash command: look up the first word in commandHandlers, then either
 --- call it directly (with the rest of the message as its argument) or, if it maps to
