@@ -1,5 +1,13 @@
 # Release Notes
 
+## [1.1.1] - 2026-11-10
+### Fixed
+- A Lua error that repeated every frame once a tracked map waypoint was gone, which showed up as the game's "Your AddOns are experiencing a large number of errors" warning. The compass could still think it was tracking a waypoint after it had been cleared, and tried to read it. It now just hides the marker. Thanks to the CurseForge user who reported it with the error text.
+- Added the same kind of safety checks for tracked area points of interest and taxi nodes, in case the game returns nothing for them. No problems with those have been reported.
+
+### Changed
+- Internal: the `/wayfinder debug` commands moved into their own file (`Debug.lua`). They work the same.
+
 ## [1.1.0] - 2026-10-08
 ### Added
 - Experimental support for WoW Classic Era (1.15). The compass banner, its background, the center line, the compass detail levels and the settings page all work there. SuperTracking (the marker, distance and ETA) doesn't, because Classic Era doesn't have the game features it relies on. See the new Compatibility table in the README for how well each client is supported.
