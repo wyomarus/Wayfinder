@@ -182,20 +182,24 @@ end
 
 local function superTrackingUserWaypoint()
     local point = GetUserWaypoint()
+    -- The tracking type can still say UserWaypoint after the waypoint is gone
+    -- (cleared, or not restored yet); there's nothing to point at then.
+    if not point then return end
     return GetWorldCoordinatesFromZone(point.position.x, point.position.y, point.uiMapID)
 end
 
 local function handleAreaPOI(map, typeId)
     local info = GetAreaPOIInfo(map, typeId)
-    if not info then return end
+    if not (info and info.position) then return end
     local x, y = info.position:GetXY()
     return GetWorldCoordinatesFromZone(x, y, map)
 end
 
 local function handleTaxiNode(map, typeId)
     local nodes = GetTaxiNodesForMap(map)
+    if not nodes then return end
     for _, node in ipairs(nodes) do
-        if node.nodeID == typeId then
+        if node.nodeID == typeId and node.position then
             return GetWorldCoordinatesFromZone(node.position.x, node.position.y, map)
         end
     end
