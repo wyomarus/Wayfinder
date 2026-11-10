@@ -24,13 +24,15 @@ luacheck --no-color -q          # lint; same invocation CI uses, config in .luac
 
 ## Architecture
 
-**Load order is the dependency order.** `Wayfinder.toc` loads `Libs\embeds.xml`, then `Wayfinder.lua`, `CompassBanner.lua`, `CardinalPoints.lua`, `SuperTracking.lua`, `Settings.lua`, `AddonCompartment.lua`, `Slash.lua`. Files share state only through the addon table (`local _, addon = ...`), so a module can use only what an earlier file has already published.
+**Load order is the dependency order.** `Wayfinder.toc` loads `Libs\embeds.xml`, then `Wayfinder.lua`, `CompassBanner.lua`, `CardinalPoints.lua`, `SuperTracking.lua`, `Debug.lua`, `Settings.lua`, `AddonCompartment.lua`, `Slash.lua`. Files share state only through the addon table (`local _, addon = ...`), so a module can use only what an earlier file has already published.
 
 `Wayfinder.lua` creates the namespaces (`addon.API`, `addon.private`, `addon.Constants`; aliases are in the conventions above). It also provides `_p.getOrSetDefault`, `_p.bind` and a no-op `_p.refreshSettingsPanel` placeholder that `Settings.lua` later overwrites.
 
 **The banner is a host for pluggable "elements".** `CompassBanner.lua` owns the frame and a single `OnUpdate`. Other modules register with `api.AddElementToBanner(name, angleFunction, createMarker, isSticky)`, which returns a handle used with `api.SetElementEnabled` and `api.SetElementRotateWhenSticky`. The banner reads `GetPlayerFacing()` each frame and positions every enabled element from the angle its callback returns. `CardinalPoints.lua` (N/E/S/W, intercardinals, pips) and `SuperTracking.lua` (the tracked-target marker) are both elements. A new thing on the banner should be a new element, not banner code.
 
 **Facing can be unavailable.** Some places (most dungeons) return nil from `GetPlayerFacing()`, and in combat it can be a secret value. `onUpdate` then sets the banner's alpha to 0 but leaves it "shown" so the update keeps running and notices when facing returns. `api.CompassBanner.IsFacingAvailable()` feeds a notice in the settings page. The user's on/off choice (`showBanner`) is kept separate from this temporary hiding.
+
+**Diagnostics are isolated in `Debug.lua`.** It owns the `/wayfinder debug` commands and the `WayfinderDebug` saved variable. `SuperTracking.lua` exposes only a read-only view (`_p.getSuperTrackingState()`) and calls an optional `_p.traceETA` hook; `Slash.lua` registers and lists the debug commands only if `api.DebugSuperTracking` exists. Nothing else may depend on `Debug.lua`, so a build can omit it.
 
 **Per-client gating happens at module level.** `SuperTracking.lua` checks for `C_SuperTrack`, `C_Navigation` and the `Enum.SuperTracking*` enums at the top. If any is missing (Classic Era), it publishes a do-nothing `api.SuperTracking` with `IsSupported() == false`, then `return`s. Settings and slash code must check `IsSupported` before offering the feature, and any new module needing client-specific APIs should follow the same stub pattern.
 
