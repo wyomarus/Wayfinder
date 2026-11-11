@@ -29,6 +29,7 @@ local GetAddOnMetadata = C_AddOns.GetAddOnMetadata
 
 local DetailLevel = _C.CompassDetail
 local BannerOverlay = _C.BannerOverlay
+local TurnSmoothing = _C.TurnSmoothing
 
 local ICON = "Interface\\AddOns\\Wayfinder\\Media\\Icon.jpg"
 
@@ -121,6 +122,7 @@ function panel.OnDefault()
     api.CardinalPoints.SetDetail(DetailLevel.Pips)
     api.CompassBanner.SetOverlay(BannerOverlay.Off)
     api.CompassBanner.SetShowCenterLine(true)
+    api.CompassBanner.SetTurnSmoothing(TurnSmoothing.Off)
     api.SuperTracking.Enable()
     api.SuperTracking.SetShowDistance(true)
     api.SuperTracking.SetShowETA(true)
@@ -520,6 +522,13 @@ createStepper("Compass detail", {
     { value = DetailLevel.Intercardinals, label = "Intercardinals", tooltip = "Cardinal and intercardinal directions." },
     { value = DetailLevel.Pips, label = "Pips", tooltip = "Cardinal, intercardinal, and a tick every 15 degrees." },
 }, api.CardinalPoints.GetDetail, api.CardinalPoints.SetDetail, api.CompassBanner.IsEnabled)
+
+createStepper("Turn smoothing", {
+    { value = TurnSmoothing.Off, label = "Off", tooltip = "The banner follows your facing exactly, with no easing." },
+    { value = TurnSmoothing.Light, label = "Light", tooltip = "The banner eases briefly toward a new heading, taking the edge off sudden turns." },
+    { value = TurnSmoothing.Medium, label = "Medium", tooltip = "The banner glides noticeably toward a new heading." },
+    { value = TurnSmoothing.Heavy, label = "Heavy", tooltip = "The banner swings slowly toward a new heading, for the smoothest motion." },
+}, api.CompassBanner.GetTurnSmoothing, api.CompassBanner.SetTurnSmoothing, api.CompassBanner.IsEnabled)
 
 createCheckbox(
     "Show center line", "Show the line at the middle of the banner marking the direction you're facing. Not shown when compass detail is None.",
