@@ -7,7 +7,7 @@ local _C = addon.Constants
 
 -- Cache global references
 local deg, rad = math.deg, math.rad
-local abs = math.abs
+local abs, exp, pi = math.abs, math.exp, math.pi
 local GetPlayerFacing = GetPlayerFacing
 local issecretvalue = issecretvalue or function() return false end
 local CreateFrame = CreateFrame
@@ -22,6 +22,7 @@ local HALF_FOV = FOV / 2
 local DEFAULT_BANNER_POINT = "TOP"
 local DEFAULT_BANNER_X = 0
 local DEFAULT_BANNER_Y = -10
+local TWO_PI = 2 * pi
 
 _C.BANNER_WIDTH = BANNER_WIDTH
 _C.BANNER_HEIGHT = BANNER_HEIGHT
@@ -38,6 +39,30 @@ _C.BannerOverlay = {
 local BannerOverlay = _C.BannerOverlay
 
 local DEFAULT_OVERLAY = BannerOverlay.Off
+
+--- How much the banner eases toward a new heading instead of jumping to it. Published on
+--- addon.Constants since Settings.lua and Slash.lua need it too.
+_C.TurnSmoothing = {
+    Off = 0,
+    Light = 1,
+    Medium = 2,
+    Heavy = 3,
+}
+local TurnSmoothing = _C.TurnSmoothing
+
+local DEFAULT_TURN_SMOOTHING = TurnSmoothing.Off
+
+-- Time constant, in seconds, of the exponential ease at each level: roughly how long the
+-- banner takes to cover two thirds of a turn. Frame-rate independent.
+local TURN_SMOOTHING_TIME = {
+    [TurnSmoothing.Light] = 0.18,
+    [TurnSmoothing.Medium] = 0.3,
+    [TurnSmoothing.Heavy] = 0.5,
+}
+
+-- Below this gap (radians, ~0.06 degrees) the eased heading just snaps to the real one, so
+-- it settles exactly instead of creeping forever.
+local TURN_SNAP_EPSILON = 0.001
 
 -- Opacity of the backdrop at each strength.
 local OVERLAY_ALPHA = {
@@ -200,6 +225,23 @@ local function setShowCenterLine(shown)
     _p.refreshSettingsPanel()
 end
 
+-- A level the code doesn't know (a hand-edited file, or one from a newer version) falls
+-- back to the default rather than being trusted.
+local turnSmoothing = _p.getOrSetDefault("turnSmoothing", DEFAULT_TURN_SMOOTHING)
+if turnSmoothing ~= TurnSmoothing.Off and not TURN_SMOOTHING_TIME[turnSmoothing] then
+    turnSmoothing = DEFAULT_TURN_SMOOTHING
+end
+
+--- Set how much the banner eases when turning: applies it now and remembers it.
+--- Refreshing the Settings panel keeps its stepper in sync when this changes via a slash
+--- command instead of the panel itself.
+--- @param level number One of the TurnSmoothing values.
+local function setTurnSmoothing(level)
+    turnSmoothing = level
+    WayfinderSettings.turnSmoothing = level
+    _p.refreshSettingsPanel()
+end
+
 --- Remember the banner's current position so it can be restored on the next load.
 local function saveBannerPosition()
     local point, _, relativePoint, xOfs, yOfs = addon.CompassBannerFrame:GetPoint()
@@ -273,6 +315,8 @@ api.CompassBanner = {
     SetShowCenterLine = setShowCenterLine,
     GetOverlay = function() return bannerOverlay end,
     SetOverlay = setBannerOverlay,
+    GetTurnSmoothing = function() return turnSmoothing end,
+    SetTurnSmoothing = setTurnSmoothing,
 }
 
 local function asDegrees(radians)
@@ -362,7 +406,33 @@ end
 -- stays "shown" so this update keeps running to notice that.
 local facingAvailable = true
 
-local function onUpdate()
+-- The heading the banner is drawn at, in radians like GetPlayerFacing(). With turn
+-- smoothing on it eases toward the real facing rather than jumping to it. nil until there's
+-- a facing to start from, and reset whenever facing goes away, so the banner snaps straight
+-- to the right heading when it reappears instead of swinging round to it.
+local displayedFacing
+
+--- Ease displayedFacing toward the real facing, the short way round.
+--- @param facing number The real facing, in radians.
+--- @param elapsed number Seconds since the last frame.
+--- @return number displayedFacing
+local function easeFacing(facing, elapsed)
+    local smoothingTime = TURN_SMOOTHING_TIME[turnSmoothing]
+    if not smoothingTime or not displayedFacing then
+        displayedFacing = facing
+        return facing
+    end
+
+    local delta = (facing - displayedFacing + pi) % TWO_PI - pi -- shortest arc, [-pi, pi)
+    if abs(delta) < TURN_SNAP_EPSILON then
+        displayedFacing = facing
+    else
+        displayedFacing = (displayedFacing + delta * (1 - exp(-elapsed / smoothingTime))) % TWO_PI
+    end
+    return displayedFacing
+end
+
+local function onUpdate(_, elapsed)
     local facing = GetPlayerFacing()
     local available = facing ~= nil and not issecretvalue(facing)
     if available ~= facingAvailable then
@@ -370,7 +440,12 @@ local function onUpdate()
         addon.CompassBannerFrame:SetAlpha(available and 1 or 0)
         _p.refreshSettingsPanel()
     end
-    if not available then return end
+    if not available then
+        displayedFacing = nil
+        return
+    end
+
+    facing = easeFacing(facing, elapsed or 0)
 
     for _, element in ipairs(elements) do
         processElement(element, facing)

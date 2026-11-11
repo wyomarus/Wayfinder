@@ -118,6 +118,22 @@ local function SetBannerBackground(arg)
     print("Banner background set to " .. level .. ".")
 end
 
+local function SetTurnSmoothing(arg)
+    local TurnSmoothing = _C.TurnSmoothing
+    local level = tonumber(arg)
+    if not level or level < TurnSmoothing.Off or level > TurnSmoothing.Heavy or level % 1 ~= 0 then
+        print("Usage: /wayfinder smoothing <0-3>")
+        print(" 0 - off, the banner follows your facing exactly (default)")
+        print(" 1 - light")
+        print(" 2 - medium")
+        print(" 3 - heavy")
+        return
+    end
+
+    api.CompassBanner.SetTurnSmoothing(level)
+    print("Turn smoothing set to " .. level .. ".")
+end
+
 --- Wrap a SuperTracking command so that on a client without SuperTracking (Classic Era,
 --- for example) it says so instead of doing nothing.
 --- @param handler function
@@ -144,6 +160,7 @@ local function PrintUsage()
     print("/wayfinder detail <0-3> - Set how much compass detail is shown")
     print("/wayfinder centerline enable|disable - Show or hide the line at the center of the banner")
     print("/wayfinder background <0-3> - Set the strength of the dark fade behind the banner")
+    print("/wayfinder smoothing <0-3> - Set how much the banner eases when you turn")
     if api.SuperTracking.IsSupported() then
         print("/wayfinder tracking enable|disable - Enable or disable SuperTracking")
         print("/wayfinder distance enable|disable - Show or hide the SuperTracking distance readout")
@@ -172,6 +189,7 @@ local commandHandlers = {
         disable = DisableCenterLine,
     },
     background = SetBannerBackground,
+    smoothing = SetTurnSmoothing,
     tracking = {
         enable = whenSuperTrackingSupported(EnableSuperTracking),
         disable = whenSuperTrackingSupported(DisableSuperTracking),
